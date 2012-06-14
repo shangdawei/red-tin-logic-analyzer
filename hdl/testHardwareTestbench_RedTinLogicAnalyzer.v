@@ -46,7 +46,7 @@ module testHardwareTestbench_RedTinLogicAnalyzer;
 	initial begin
 		#100;
       ready = 1;
-		#500;
+		#5000;
 		buttons[0] = 1;
 	end
 	

@@ -105,12 +105,12 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 	
 	RedTinLogicAnalyzer analyzer (
 		.clk(clk_2x), 
-		.din({clk_fake, buttons_buf, foobar, 91'h0}), 
+		.din({clk_fake, buttons_buf, 3'h0, foobar, 88'h0}), 
 		
 		//Trigger when buttons[0] is pressed
 		.trigger_low(128'h0), 
 		.trigger_high(128'h0), 
-		.trigger_rising({ 1'b0, 4'b0001, 32'h0, 91'h0 }), 
+		.trigger_rising({ 1'b0, 4'b0001, 3'h0, 32'h0, 88'h0 }), 
 		.trigger_falling(128'h0), 
 		
 		//read data bus
@@ -135,6 +135,8 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 	wire uart_txactive;
 	wire uart_rxactive;
 	wire uart_overflow;
+	wire uart_rxrdy;
+	wire[7:0] uart_rxout;
 	UART uart (
 		.clk(clk), 
 		.clkdiv(uart_clkdiv),
@@ -143,8 +145,8 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 		.txrdy(uart_txen), 
 		.txactive(uart_txactive), 
 		.rx(uart_rx), 						//no RX logic for now, just tx
-		//.rxout(uart_rxout), 
-		//.rxrdy(uart_rxrdy), 
+		.rxout(uart_rxout), 
+		.rxrdy(uart_rxrdy), 
 		.rxactive(uart_rxactive), 
 		.overflow(uart_overflow)
 		);
@@ -175,11 +177,21 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 		endcase
 	end
 
+	reg sending_sync_pattern = 1;
+	reg waiting_for_ack = 0;
+	reg uart_data_ready = 0;
+
 	always @(posedge clk) begin
 		
 		done_buf <= done;
 		uart_txen <= 0;
 		reset <= 0;
+		
+		leds[4] <= uart_rxactive;
+		leds[3] <= uart_txactive;
+		
+		if(uart_rxrdy)
+			uart_data_ready <= 1;
 		
 		if(done) begin
 			
@@ -192,6 +204,35 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 			//If UART is busy, skip
 			else if(uart_txen || uart_txactive) begin
 				//nothing to do
+			end
+			
+			//Send sync pattern so the other end can lock on every 16th frame
+			//15 0x55 followed by an 0xAA
+			else if(sending_sync_pattern) begin
+				uart_txen <= 1;
+				uart_txdata <= 8'h55;
+				bpos <= bpos + 1;
+				
+				if(bpos == 15) begin
+					leds[7] <= 1;
+					leds[6] <= 0;
+					leds[5] <= 0;
+					sending_sync_pattern <= 0;
+					//waiting_for_ack <= 1;
+					uart_txdata <= 8'hAA;
+					bpos <= 0;
+				end
+				
+			end
+			
+			else if(waiting_for_ack) begin
+				leds[5] <= 1;
+				if(uart_data_ready) begin
+					leds[6] <= 1;
+					leds[7] <= 0;
+					waiting_for_ack <= 0;
+					uart_data_ready <= 0;
+				end
 			end
 			
 			//Dumping data
@@ -212,9 +253,16 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 						read_addr <= 0;
 						reset <= 1;
 						leds[1] <= 1;
+						sending_sync_pattern <= 0;
 					end
 					
 					else begin
+						
+						//Every 16 samples, send a sync word
+						if(read_addr[3:0] == 4'hF) begin
+							sending_sync_pattern <= 1;
+						end
+					
 						read_addr <= read_addr + 1;
 					end
 				end

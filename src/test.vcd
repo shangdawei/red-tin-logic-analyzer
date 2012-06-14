@@ -1,0 +1,14 @@
+$timescale 50ns $end
+$date Jun 14 2012 01:58:20 $end
+$version RED TIN v0.1 $end
+$var reg 1 a clk $end
+$enddefinition $end
+
+#0
+1a
+#1
+0a
+#2
+1a
+#3
+0a
