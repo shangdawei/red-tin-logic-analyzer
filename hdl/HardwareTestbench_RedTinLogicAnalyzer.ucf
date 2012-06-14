@@ -1,0 +1,4 @@
+
+#Created by Constraints Editor (xc6slx16-ftg256-3) - 2012/06/13
+NET "clk_20mhz" TNM_NET = clk_20mhz;
+TIMESPEC TS_clk_20mhz = PERIOD "clk_20mhz" 20 MHz HIGH 50%;
