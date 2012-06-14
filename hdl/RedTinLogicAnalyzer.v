@@ -8,6 +8,7 @@ module RedTinLogicAnalyzer(
 	clk,
 	din,
 	trigger_low, trigger_high, trigger_rising, trigger_falling,
+	done,
 	read_addr, read_data
     );
 	 
@@ -33,6 +34,8 @@ module RedTinLogicAnalyzer(
 
 	input wire[8:0] read_addr;
 	output reg[DATA_WIDTH-1:0] read_data = 0;
+	
+	output wire done;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger logic
@@ -40,7 +43,7 @@ module RedTinLogicAnalyzer(
 	wire trigger;
 	
 	//Save the old value (used for edge detection)
-	reg[DATA_WIDTH-1:0] din_buf;
+	reg[DATA_WIDTH-1:0] din_buf = 0;
 	always @(posedge clk) begin
 		din_buf <= din;
 	end
@@ -97,7 +100,8 @@ module RedTinLogicAnalyzer(
 	reg[1:0] state = 0;	//00 = idle
 								//01 = capturing
 								//10 = wait for reset
-	
+								//11 = invalid
+	assign done = state[1];
 	always @(posedge clk) begin
 		
 		//If in idle or capture state, write to the buffer

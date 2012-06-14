@@ -19,8 +19,7 @@
 //
 //////////////////////////////////////////////////////////////////////////////////
 module HardwareTestbench_RedTinLogicAnalyzer(
-	clk_20mhz, leds, buttons,
-	read_addr, read_data
+	clk_20mhz, leds, buttons
     );
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,15 +85,23 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 		clk_fake <= !clk_fake;
 	end
 	
+	//Move buttons into the main clock domain
+	reg[3:0] buttons_buf = 0;
+	always @(posedge clk) begin
+		buttons_buf <= buttons;
+	end
+	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// The logic analyzer
 
-	input wire[8:0] read_addr;
-	output wire[127:0] read_data;
+	wire[8:0] read_addr;
+	wire[127:0] read_data;
+	
+	wire done;
 	
 	RedTinLogicAnalyzer analyzer (
 		.clk(clk_2x), 
-		.din({clk_fake, buttons, foobar, 91'h0}), 
+		.din({clk_fake, buttons_buf, foobar, 91'h0}), 
 		
 		//Trigger when buttons[0] is pressed
 		.trigger_low(128'h0), 
@@ -103,8 +110,16 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 		.trigger_falling(128'h0), 
 		
 		//read data bus
+		.done(done),
 		.read_addr(read_addr),
 		.read_data(read_data)
 		);
+		
+	always @(posedge clk) begin
+		leds[0] <= done;
+	end
+		
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// UART logic to dump the capture buffer
 
 endmodule

@@ -1,4 +1,42 @@
 
 #Created by Constraints Editor (xc6slx16-ftg256-3) - 2012/06/13
-NET "clk_20mhz" TNM_NET = clk_20mhz;
-TIMESPEC TS_clk_20mhz = PERIOD "clk_20mhz" 20 MHz HIGH 50%;
+NET "clk_20mhz" TNM_NET = "clk_20mhz";
+TIMESPEC TS_clk_20mhz = PERIOD "clk_20mhz" 20 MHz HIGH 50 %;
+
+# PlanAhead Generated IO constraints 
+
+NET "clk_20mhz" IOSTANDARD = LVCMOS33;
+
+# PlanAhead Generated physical constraints 
+
+NET "clk_20mhz" LOC = C10;
+
+# PlanAhead Generated IO constraints 
+
+NET "leds[7]" IOSTANDARD = LVCMOS33;
+NET "leds[6]" IOSTANDARD = LVCMOS33;
+NET "leds[5]" IOSTANDARD = LVCMOS33;
+NET "leds[4]" IOSTANDARD = LVCMOS33;
+NET "leds[3]" IOSTANDARD = LVCMOS33;
+NET "leds[2]" IOSTANDARD = LVCMOS33;
+NET "leds[1]" IOSTANDARD = LVCMOS33;
+NET "leds[0]" IOSTANDARD = LVCMOS33;
+NET "buttons[3]" IOSTANDARD = LVCMOS33;
+NET "buttons[2]" IOSTANDARD = LVCMOS33;
+NET "buttons[1]" IOSTANDARD = LVCMOS33;
+NET "buttons[0]" IOSTANDARD = LVCMOS33;
+
+# PlanAhead Generated physical constraints 
+
+NET "buttons[0]" LOC = E10;
+NET "buttons[1]" LOC = E8;
+NET "buttons[3]" LOC = A10;
+NET "buttons[2]" LOC = D11;
+NET "leds[0]" LOC = C11;
+NET "leds[1]" LOC = F10;
+NET "leds[2]" LOC = A11;
+NET "leds[3]" LOC = B14;
+NET "leds[4]" LOC = A14;
+NET "leds[5]" LOC = A13;
+NET "leds[6]" LOC = B12;
+NET "leds[7]" LOC = A12;
