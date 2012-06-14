@@ -8,7 +8,7 @@ module RedTinLogicAnalyzer(
 	clk,
 	din,
 	trigger_low, trigger_high, trigger_rising, trigger_falling,
-	done,
+	done, reset,
 	read_addr, read_data
     );
 	 
@@ -34,7 +34,8 @@ module RedTinLogicAnalyzer(
 
 	input wire[8:0] read_addr;
 	output reg[DATA_WIDTH-1:0] read_data = 0;
-	
+
+	input wire reset;
 	output wire done;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,10 +138,21 @@ module RedTinLogicAnalyzer(
 					capture_waddr <= capture_waddr + 9'h001;
 			end
 			
-			//Read stuff
-			//TODO: reset
+			//Read stuff and wait for reset
 			2'b10: begin
-				read_data <= capture_buf[read_addr];
+				
+				//We're actually reading offsets in the circular buffer, not raw memory addresses.
+				//Keep that in mind!
+				read_data <= capture_buf[read_addr + capture_start];
+				
+				if(reset) begin
+					state <= 2'b00;
+					
+					capture_start <= 9'h000;
+					capture_end <= 9'h1FF;
+					capture_waddr <= 9'h010;
+					
+				end
 			end
 			
 		endcase

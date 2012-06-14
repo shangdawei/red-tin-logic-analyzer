@@ -27,15 +27,19 @@ module testHardwareTestbench_RedTinLogicAnalyzer;
 	// Inputs
 	reg clk_20mhz = 0;
 	reg [3:0] buttons = 0;
+	reg uart_rx = 1;
 
 	// Outputs
 	wire [7:0] leds;
+	wire uart_tx;
 
 	// Instantiate the Unit Under Test (UUT)
 	HardwareTestbench_RedTinLogicAnalyzer uut (
 		.clk_20mhz(clk_20mhz), 
 		.leds(leds), 
-		.buttons(buttons)
+		.buttons(buttons),
+		.uart_rx(uart_rx),
+		.uart_tx(uart_tx)
 	);
 
 	reg ready = 0;

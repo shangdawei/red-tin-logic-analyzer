@@ -3,6 +3,12 @@
 NET "clk_20mhz" TNM_NET = "clk_20mhz";
 TIMESPEC TS_clk_20mhz = PERIOD "clk_20mhz" 20 MHz HIGH 50 %;
 
+#swapped from schematic to be from FPGA's perspective
+NET "uart_rx" LOC = C13;
+NET "uart_tx" LOC = D12;
+NET "uart_rx" IOSTANDARD = LVCMOS33;
+NET "uart_tx" IOSTANDARD = LVCMOS33;
+
 # PlanAhead Generated IO constraints 
 
 NET "clk_20mhz" IOSTANDARD = LVCMOS33;
