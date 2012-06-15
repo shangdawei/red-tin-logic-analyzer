@@ -9,7 +9,8 @@ module RedTinLogicAnalyzer(
 	din,
 	trigger_low, trigger_high, trigger_rising, trigger_falling,
 	done, reset,
-	read_addr, read_data
+	read_addr, read_data,
+	ext_trigger
     );
 	 
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,6 +38,8 @@ module RedTinLogicAnalyzer(
 
 	input wire reset;
 	output wire done;
+	
+	input wire ext_trigger;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger logic
@@ -45,8 +48,10 @@ module RedTinLogicAnalyzer(
 	
 	//Save the old value (used for edge detection)
 	reg[DATA_WIDTH-1:0] din_buf = 0;
+	reg[DATA_WIDTH-1:0] din_buf2 = 0;
 	always @(posedge clk) begin
 		din_buf <= din;
+		din_buf2 <= din_buf;
 	end
 	
 	//First, check which conditions hold
@@ -54,10 +59,10 @@ module RedTinLogicAnalyzer(
 	wire[DATA_WIDTH-1:0] data_low;
 	wire[DATA_WIDTH-1:0] data_rising;
 	wire[DATA_WIDTH-1:0] data_falling;
-	assign data_high = din;
-	assign data_low = ~din;
-	assign data_rising = (din & ~din_buf);
-	assign data_falling = (~din & din_buf);
+	assign data_high = din_buf;
+	assign data_low = ~din_buf;
+	assign data_rising = (din_buf & ~din_buf2);
+	assign data_falling = (~din_buf & din_buf2);
 	
 	//Mask against the trigger.
 	wire[DATA_WIDTH-1:0] data_high_masked;
@@ -69,24 +74,27 @@ module RedTinLogicAnalyzer(
 	assign data_rising_masked = data_rising & trigger_rising;
 	assign data_falling_masked = data_falling & trigger_falling;
 	
-	//We trigger if the masked values equal the mask (all masked conditions hold).
-	assign trigger =	(data_high_masked == trigger_high) &&
+	//We trigger if the masked values equal the mask (all masked conditions hold)
+	//or the external trigger is asserted.
+	assign trigger =	(
+							(data_high_masked == trigger_high) &&
 							(data_low_masked == trigger_low) &&
 							(data_rising_masked == trigger_rising) &&
-							(data_falling_masked == trigger_falling);
-							
+							(data_falling_masked == trigger_falling)
+							) || ext_trigger;
+
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Capture logic
 	
 	//Current implementation is 128 wide (4x32) and 512 deep (4x 18k BRAM).
 	//We need a 9-bit counter.
 	
-	//Fill the memory with zeroes initially
-	reg[127:0] capture_buf[511:0];
+	//Fill the memory with garbage initially
+	reg[DATA_WIDTH-1:0] capture_buf[511:0];
 	reg[9:0] init_count;
 	initial begin
 		for(init_count = 0; init_count < 512; init_count = init_count + 1)
-			capture_buf[init_count] = 128'h0;
+			capture_buf[init_count] = 128'hA3A3A3A3A3A3A3A3A3A3A3A3A3A3A3A3;
 	end
 	
 	//Capture buffer is a circular ring buffer. Start at address X and end at X-1.
@@ -108,10 +116,11 @@ module RedTinLogicAnalyzer(
 								//10 = wait for reset
 								//11 = invalid
 	assign done = state[1];
+	
 	always @(posedge clk) begin
 		
 		//If in idle or capture state, write to the buffer
-		if(!state[0])
+		if(!state[1])
 			capture_buf[capture_waddr] <= din;
 		
 		case(state)
@@ -146,7 +155,7 @@ module RedTinLogicAnalyzer(
 			//Read stuff and wait for reset
 			2'b10: begin
 				read_data <= capture_buf[real_read_addr];
-				
+								
 				if(reset) begin
 					state <= 2'b00;
 					
