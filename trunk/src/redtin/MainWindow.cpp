@@ -46,6 +46,8 @@
 using namespace std;
 
 MainWindow::MainWindow()
+: m_signallist(2)
+, m_triggerlist(3)
 {
 	//Initial setup
 	set_title("RED TIN Logic Analyzer");
@@ -101,16 +103,72 @@ void MainWindow::CreateWidgets()
 	add(m_rootSplitter);
 		m_rootSplitter.add1(m_leftpanel);
 			m_leftpanel.add(m_leftbox);
+				m_leftbox.pack_start(m_signallist);
+				m_leftbox.pack_end(m_leftbuttons, Gtk::PACK_SHRINK);
+					m_leftbuttons.pack_start(m_editbutton, Gtk::PACK_SHRINK);
+					m_leftbuttons.pack_start(m_deletebutton, Gtk::PACK_SHRINK);
+					m_leftbuttons.pack_start(m_sigupbutton, Gtk::PACK_SHRINK);
+					m_leftbuttons.pack_start(m_sigdownbutton, Gtk::PACK_SHRINK);
+					m_editbutton.set_label("Edit Signal");
+					m_deletebutton.set_label("Delete Signal");
+					m_sigupbutton.set_label("Move Up");
+					m_sigdownbutton.set_label("Move Down");
 		m_rootSplitter.add2(m_rightpanel);
 			m_rightpanel.add(m_rightbox);
-		m_rootSplitter.set_position(300);
+				m_rightbox.pack_start(m_editframe, Gtk::PACK_SHRINK);
+					m_editframe.add(m_editpanel);
+					m_editframe.set_label("Edit Signal");
+						m_editpanel.pack_start(m_signalwidthbox, Gtk::PACK_SHRINK);
+						m_editpanel.pack_start(m_signalnameentry);
+						m_editpanel.pack_end(m_signalupdatebutton, Gtk::PACK_SHRINK);
+						m_signalupdatebutton.set_label("Add Signal");
+				m_rightbox.pack_start(m_triggereditframe, Gtk::PACK_SHRINK);
+					m_triggereditframe.add(m_triggereditpanel);
+					m_triggereditframe.set_label("Trigger when");
+						m_triggereditpanel.pack_start(m_triggersignalbox);
+						m_triggereditpanel.pack_start(m_triggerbitbox, Gtk::PACK_SHRINK);
+						m_triggereditpanel.pack_start(m_triggeredgebox, Gtk::PACK_SHRINK);
+						m_triggereditpanel.pack_start(m_triggerupdatebutton, Gtk::PACK_SHRINK);
+						m_triggerupdatebutton.set_label("Add Trigger");
+				m_rightbox.pack_start(m_triggerpanel);				
+					m_triggerpanel.pack_start(m_triggerlist);
+					m_triggerpanel.pack_start(m_triggereditbuttons, Gtk::PACK_SHRINK);
+						m_triggereditbuttons.pack_start(m_triggereditbutton, Gtk::PACK_SHRINK);
+						m_triggereditbuttons.pack_start(m_triggerdeletebutton, Gtk::PACK_SHRINK);
+						m_triggereditbuttons.pack_end(m_capturebutton, Gtk::PACK_SHRINK);
+						m_triggereditbutton.set_label("Edit");
+						m_triggerdeletebutton.set_label("Delete");
+						m_capturebutton.set_label("Start Capture");
+	m_rootSplitter.set_position(350);
 		
 	//Turn off scrollbars if not necessary
 	m_leftpanel.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	m_rightpanel.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	
-	//m_vbox.pack_start(*m_pMenu, Gtk::PACK_SHRINK);
-	//m_vbox.pack_end(m_view);
+	//Populate signal width combo box
+	for(int i=1; i<128; i++)
+	{
+		char str[16];
+		snprintf(str, 15, "reg[%d:0]", i);
+		m_signalwidthbox.append_text(str);
+	}
+	
+	m_triggersignalbox.append_text("buttons");
+	m_triggerbitbox.append_text("bit 0");
+	m_triggerbitbox.append_text("bit 1");
+	m_triggerbitbox.append_text("bit 2");
+	m_triggerbitbox.append_text("bit 3");
+	m_triggeredgebox.append_text("is high");
+	m_triggeredgebox.append_text("is low");
+	m_triggeredgebox.append_text("has a rising edge");
+	m_triggeredgebox.append_text("has a falling edge");
+	
+	//Set column titles
+	m_signallist.set_column_title(0, "Width");
+	m_signallist.set_column_title(1, "Name");
+	m_triggerlist.set_column_title(0, "Signal");
+	m_triggerlist.set_column_title(1, "Bit");
+	m_triggerlist.set_column_title(2, "Edge");
 				
 	//Set up viewport
 	show_all();

@@ -44,24 +44,13 @@
 #include <gtkmm/box.h>
 #include <gtkmm/combobox.h>
 #include <gtkmm/comboboxtext.h>
-#include <gtkmm/drawingarea.h>
 #include <gtkmm/entry.h>
-#include <gtkmm/filechooserdialog.h>
-#include <gtkmm/iconfactory.h>
+#include <gtkmm/frame.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/listviewtext.h>
 #include <gtkmm/main.h>
-#include <gtkmm/notebook.h>
 #include <gtkmm/paned.h>
-#include <gtkmm/radioaction.h>
-#include <gtkmm/recentaction.h>
-#include <gtkmm/scale.h>
 #include <gtkmm/scrolledwindow.h>
-#include <gtkmm/toggleaction.h>
-#include <gtkmm/toolbar.h>
-#include <gtkmm/treestore.h>
-#include <gtkmm/treeview.h>
-#include <gtkmm/uimanager.h>
 #include <gtkmm/widget.h>
 #include <gtkmm/window.h>
 
@@ -82,38 +71,32 @@ protected:
 	Gtk::HPaned m_rootSplitter;
 		Gtk::ScrolledWindow m_leftpanel;
 			Gtk::VBox m_leftbox;
+				Gtk::ListViewText m_signallist;
+				Gtk::HBox m_leftbuttons;
+					Gtk::Button m_editbutton;
+					Gtk::Button m_deletebutton;
+					Gtk::Button m_sigupbutton;
+					Gtk::Button m_sigdownbutton;
 		Gtk::ScrolledWindow m_rightpanel;
 			Gtk::VBox m_rightbox;
+				Gtk::Frame m_editframe;
+					Gtk::HBox m_editpanel;
+						Gtk::ComboBoxText m_signalwidthbox;
+						Gtk::Entry m_signalnameentry;
+						Gtk::Button m_signalupdatebutton;
+				Gtk::Frame m_triggereditframe;
+					Gtk::HBox m_triggereditpanel;
+						Gtk::ComboBoxText m_triggersignalbox;
+						Gtk::ComboBoxText m_triggerbitbox;
+						Gtk::ComboBoxText m_triggeredgebox;
+						Gtk::Button m_triggerupdatebutton;
+				Gtk::VBox m_triggerpanel;
+					Gtk::ListViewText m_triggerlist;
+					Gtk::HBox m_triggereditbuttons;
+						Gtk::Button m_triggereditbutton;
+						Gtk::Button m_triggerdeletebutton;
+						Gtk::Button m_capturebutton;
 	
-	/*
-	Splitter
-			Scrolled panel (left)
-				Vertical box
-					List box for signals
-					Horizontal box for buttons
-						Edit button
-						Delete button
-			Scrolled panel (right)
-				Vertical box
-					Horizontal box for edit/modify area
-						Dropdown for width
-						Edit box for name
-						Add button
-					Horizontal box for triggers, text label of some sort (?)
-						Some captions
-						"bit" dropdown
-						"edge" dropdown
-						add button
-						*/
-	
-	/*	
-	Gtk::VBox m_vbox;
-		Gtk::Menu* m_pMenu;
-		Gtk::Toolbar* m_pToolbar;
-		VoxelView m_view;
-	*/
-
-
 };
 
 #endif
