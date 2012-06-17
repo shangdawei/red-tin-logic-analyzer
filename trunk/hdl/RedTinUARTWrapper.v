@@ -37,7 +37,7 @@
 	@file RedTinUARTWrapper.v
 	@brief Wrapper for Red Tin LA plus a UART
  */
-module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
+module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// IO declarations
@@ -47,6 +47,8 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 	
 	output wire uart_tx;
 	input wire uart_rx;
+	
+	output reg[7:0] leds = 0;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger stuff
@@ -62,7 +64,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 	reg la_reset = 0;
 	reg[8:0] read_addr = 0;
 	wire[127:0] read_data;
-	RedTinLogicAnalyzer analyzer (
+	RedTinLogicAnalyzer capture (
 		.clk(clk), 
 		.din(din), 
 		.trigger_low(trigger_low), 
@@ -110,7 +112,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 		Packet structure:
 			Sync header - 2 bytes, 0x55AA
 			Opcode - 1 byte
-			Length - 1 byte
+			Length (of data) - 1 byte
 			Data
 	 */
 	
@@ -141,12 +143,14 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 			
 				//Expect a 0x55, if not then we have a framing error so ignore it
 				READ_STATE_IDLE: begin
+					
 					if(uart_rxout == 8'h55)
 						read_state <= READ_STATE_SYNC1;
 				end
 				
 				//Expect a 0xAA, if not then framing error
 				READ_STATE_SYNC1: begin
+				
 					if(uart_rxout == 8'hAA)
 						read_state <= READ_STATE_OPCODE;
 					else
@@ -155,12 +159,14 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 				
 				//Read the opcode
 				READ_STATE_OPCODE: begin
+				
 					read_opcode <= uart_rxout;
 					read_state <= READ_STATE_LENGTH;
 				end
 				
 				//Read the length
 				READ_STATE_LENGTH: begin
+				
 					read_length <= uart_rxout;
 					read_state <= READ_STATE_DATA;
 					
@@ -171,6 +177,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 						//Process it now
 						case(read_opcode)
 							OP_RESET_LA: begin
+								leds[0] <= 1;
 								la_reset <= 1;
 							end
 							
@@ -182,14 +189,28 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 				
 				//Read the data 
 				READ_STATE_DATA: begin
+					leds[1] <= 1;
 					
-					//TODO: Read the data byte (into what depends on the opcode)
+					//Read the data byte (into what depends on the opcode)
+					//Triggers transmit high order byte first
+					case(read_opcode)
+						OP_TRIGGER_LOW: trigger_low <= {trigger_low[119:0], uart_rxout};
+						OP_TRIGGER_HIGH: trigger_high <= {trigger_high[119:0], uart_rxout};
+						OP_TRIGGER_RISING: trigger_rising <= {trigger_rising[119:0], uart_rxout};
+						OP_TRIGGER_FALLING: trigger_falling <= {trigger_falling[119:0], uart_rxout};
+						OP_TRIGGER_CHANGING: trigger_changing <= {trigger_changing[119:0], uart_rxout};
+						default: begin
+							
+						end
+					endcase
 					
 					read_length <= read_length - 1;
 					
 					//If we just read the last byte, stop
-					if(read_length == 1)
+					if(read_length == 1) begin
 						read_state <= READ_STATE_IDLE;
+						leds[2] <= 1;
+					end
 				end
 				
 			endcase
@@ -199,8 +220,87 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Transmit logic
 	
+	reg done_buf = 0;
+	reg[3:0] bpos = 0;
+
+	//Mux out the current byte from the output
+	reg[7:0] current_byte = 0;
+	always @(bpos, read_data) begin
+		case(bpos)
+			0: current_byte <= read_data[127:120];
+			1: current_byte <= read_data[119:112];
+			2: current_byte <= read_data[111:104];
+			3: current_byte <= read_data[103:96];
+			4: current_byte <= read_data[96:88];
+			5: current_byte <= read_data[87:80];
+			6: current_byte <= read_data[79:72];
+			7: current_byte <= read_data[71:64];
+			8: current_byte <= read_data[63:56];
+			9: current_byte <= read_data[55:48];
+			10: current_byte <= read_data[47:40];
+			11: current_byte <= read_data[39:32];
+			12: current_byte <= read_data[31:24];
+			13: current_byte <= read_data[23:16];
+			14: current_byte <= read_data[15:8];
+			15: current_byte <= read_data[7:0];
+		endcase
+	end
+
 	always @(posedge clk) begin
-	
+		
+		done_buf <= capture_done;
+		uart_txen <= 0;
+		
+		if(la_reset) begin
+			leds[7] <= 0;
+			leds[6] <= 0;
+			leds[3] <= 0;
+		end
+		
+		if(capture_done) begin
+		
+			leds[3] <= 1;
+			
+			//Capture just finished! Start reading
+			if(!done_buf) begin
+				read_addr <= 0;
+				bpos <= 0;
+			end
+			
+			//If UART is busy, skip
+			else if(uart_txen || uart_txactive) begin
+				//nothing to do
+			end		
+			
+			//Dumping data
+			else begin
+				leds[6] <= 1;
+			
+				//Dump this byte out the UART
+				uart_txen <= 1;
+				uart_txdata <= current_byte;
+				bpos <= bpos + 1;
+				
+				//If we're at the end of the byte, load the next word
+				if(bpos == 15) begin
+				
+					bpos <= 0;
+				
+					//but if we're at the end of the buffer, stop
+					if(read_addr == 511) begin
+						read_addr <= 0;
+						leds[7] <= 1;
+					end
+					
+					else begin
+						read_addr <= read_addr + 1;
+					end
+				end
+			
+			end
+			
+		end
+		
 	end
 
 endmodule

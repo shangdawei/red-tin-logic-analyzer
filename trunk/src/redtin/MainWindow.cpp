@@ -43,6 +43,13 @@
 #include <gtkmm/stock.h>
 #include <iostream>
 
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <memory.h>
+
 using namespace std;
 
 static const char* g_edgenames[] = 
@@ -305,10 +312,12 @@ void MainWindow::OnCapture()
 		Signal& sig = m_signals[i];
 		sig.highbit = bitpos;
 		sig.lowbit = bitpos - sig.width + 1;
+		/*
 		if(sig.width == 1)
 			printf("  Signal %s is data[%d]\n",  sig.name.c_str(), sig.highbit);
 		else
 			printf("  Signal %s[%d:0] is data[%d:%d]\n",  sig.name.c_str(), sig.width-1, sig.highbit, sig.lowbit);
+		*/
 		bitpos -= sig.width;
 		
 		if(bitpos < 0)
@@ -332,22 +341,23 @@ void MainWindow::OnCapture()
 			return;
 		}
 		
-		printf("  Trigger of type %d on bit %d of signal %s\n", trig.triggertype, trig.nbit, trig.signalname.c_str());
+		//printf("  Trigger of type %d on bit %d of signal %s\n", trig.triggertype, trig.nbit, trig.signalname.c_str());
 		
 		//Get the bit number for the signal
 		int nbit = sig.lowbit + trig.nbit;
-		printf("    = data[%d]\n", nbit);
+		//printf("    = data[%d]\n", nbit);
 		
 		//Break the bit number down into a word number and a byte number
 		int nword = 15 - (nbit >> 3);
 		int col = nbit & 7;
-		printf("    = mask[%d] bit %d\n", nword, col);
+		//printf("    = mask[%d] bit %d\n", nword, col);
 		
 		//Update the trigger arrays
 		triggers[trig.triggertype][nword] |= (0x01 << col);
 	}
 	
 	//Print output masks
+	/*
 	for(int i=0; i<5; i++)
 	{
 		printf("Trigger mask %20s = ", g_edgenames[i]);
@@ -362,6 +372,101 @@ void MainWindow::OnCapture()
 		}
 		printf("\n");
 	}
+	*/
 	
 	//Connect to the UART
+	int hfile = open("/dev/ttyUSB0", O_RDWR);
+	if(hfile < 0)
+	{
+		perror("couldn't open uart");
+		return;
+	}
+	
+	//Set flags
+	termios flags;
+	memset(&flags, 0, sizeof(flags));
+	tcgetattr(hfile, &flags);
+	flags.c_cflag = B500000 | CS8 | CLOCAL | CREAD;
+	flags.c_iflag = 0;
+	flags.c_cc[VMIN] = 1;
+	if(0 != tcflush(hfile, TCIFLUSH))
+	{
+		perror("fail to flush tty");
+		return;
+	}
+	if(0 != tcsetattr(hfile, TCSANOW, &flags))
+	{
+		perror("fail to set attr");
+		return;
+	}
+	
+	//Send the capture masks to the board
+	/*
+		Packet format for trigger settings
+		55 AA		(sync header)
+		1 byte		(opcode)
+		10			(data length)
+		16 bytes	(data)
+	 */
+	unsigned char mask_buf[20] = 
+	{
+		0x55,	/* sync header */
+		0xaa,
+		0,		/* opcode here */
+		0x10, 	/* message length is constant */
+		0,		/* placeholder for data */
+		0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0
+	};
+	for(int i=0; i<5; i++)
+	{
+		//Opcodes are in same order as "triggers" array but 1-based
+		mask_buf[2] = i+1;
+		
+		//Copy data
+		for(int j=0; j<16; j++)
+			mask_buf[4+j] = triggers[i][j];
+		
+		/*	
+		printf("Sending packet: ");
+		for(int j=0; j<20; j++)
+			printf("%02x", mask_buf[j]);
+		printf("\n");
+		*/
+			
+		//Write the data
+		if(write_looped(hfile, mask_buf, 20) != 20)
+			return;
+	}
+	
+	//Send the reset command to the board
+	unsigned char reset_buf[4]= { 0x55, 0xaa, 0x06, 0x0 };
+	if(write_looped(hfile, reset_buf, 4) != 4)
+		return;
+		
+	//Wait for data to come back
+	printf("Ready...\n");
+	
+	
+	//Done
+	close(hfile);
+}
+
+int MainWindow::write_looped(int fd, unsigned char* buf, int count)
+{
+	unsigned char* p = buf;
+	int bytes_left = count;
+	int x = 0;
+	while( (x = write(fd, p, bytes_left)) > 0)
+	{
+		if(x < 0)
+		{
+			perror("fail to write");
+			return -1;
+		}
+		bytes_left -= x;
+		p += x;
+	}
+	
+	return count;
 }

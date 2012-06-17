@@ -151,11 +151,11 @@ module RedTinLogicAnalyzer(
 	wire[8:0] real_read_addr;
 	assign real_read_addr = read_addr + capture_start;
 	
-	reg[1:0] state = 2'b10;	//00 = idle
+	reg[1:0] state = 2'b11;	//00 = idle
 									//01 = capturing
-									//10 = wait for reset
-									//11 = invalid
-	assign done = state[1];
+									//10 = done, wait for reset
+									//11 = uninitialized, wait for reset
+	assign done = (state == 2'b10);
 	
 	always @(posedge clk) begin
 		
@@ -196,6 +196,17 @@ module RedTinLogicAnalyzer(
 			2'b10: begin
 				read_data <= capture_buf[real_read_addr];
 								
+				if(reset) begin
+					state <= 2'b00;
+					
+					capture_start <= 9'h000;
+					capture_end <= 9'h1FF;
+					capture_waddr <= 9'h010;
+					
+				end
+			end
+			
+			2'b11: begin
 				if(reset) begin
 					state <= 2'b00;
 					
