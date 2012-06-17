@@ -161,10 +161,11 @@ void MainWindow::CreateWidgets()
 	}
 	m_signalwidthbox.set_active(0);
 	
-	m_triggeredgebox.append_text("is high");
 	m_triggeredgebox.append_text("is low");
-	m_triggeredgebox.append_text("has a rising edge");
+	m_triggeredgebox.append_text("is high");
 	m_triggeredgebox.append_text("has a falling edge");
+	m_triggeredgebox.append_text("has a rising edge");
+	m_triggeredgebox.append_text("changes");
 	
 	//Set column titles
 	m_signallist.set_column_title(0, "Width");
@@ -217,9 +218,12 @@ void MainWindow::OnTriggerSignalChanged()
 {
 	int sel = m_triggersignalbox.get_active_row_number();
 	
+	m_triggerbitbox.clear_items();
+	
 	//no selection
 	if(sel == -1)
-		m_triggerbitbox.clear_items();
+	{
+	}
 	else
 	{	
 		//Look up this item
@@ -237,5 +241,39 @@ void MainWindow::OnTriggerSignalChanged()
 
 void MainWindow::OnTriggerUpdate()
 {
+	//Get trigger parameters
+	int signal = m_triggersignalbox.get_active_row_number();
+	int nbit = m_triggerbitbox.get_active_row_number();
+	int edge = m_triggeredgebox.get_active_row_number();
+	
+	//If no selection for any of them, quit
+	if( (edge == -1) || (signal == -1) || (nbit == -1) )
+		return;
+		
+	Signal& sig = m_signals[signal];
+	
+	//TODO: add to internal trigger list
+	
+	//string formatting
+	char sbit[16] = "";
+	if(sig.width > 1)
+		snprintf(sbit, 15, "[%d]", nbit);
+		
+	static const char* edgenames[] = 
+	{
+		"= 0",
+		"= 1",
+		"falling edge",
+		"rising edge",
+		"changes"
+	};
+	
+	//Add to triggerlist
+	int row = m_triggerlist.append_text();
+	m_triggerlist.set_text(row, 0, sig.name.c_str());
+	m_triggerlist.set_text(row, 1, sbit);
+	m_triggerlist.set_text(row, 2, edgenames[edge]);
+	
+	
 	printf("update trigger\n");
 }

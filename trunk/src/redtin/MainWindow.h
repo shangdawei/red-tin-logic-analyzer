@@ -69,6 +69,19 @@ public:
 	}
 };
 
+class Trigger
+{
+public:
+	enum TriggerTypes
+	{
+		TRIGGER_TYPE_LOW,
+		TRIGGER_TYPE_HIGH,
+		TRIGGER_TYPE_FALLING,
+		TRIGGER_TYPE_RISING,
+		TRIGGER_TYPE_CHANGE
+	};
+};
+
 class MainWindow : public Gtk::Window
 {
 public:
