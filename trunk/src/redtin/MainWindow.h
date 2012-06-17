@@ -54,6 +54,21 @@
 #include <gtkmm/widget.h>
 #include <gtkmm/window.h>
 
+#include <vector>
+
+class Signal
+{
+public:
+	int width;
+	std::string name;
+	
+	Signal(int w, std::string n)
+	: width(w)
+	, name(n)
+	{
+	}
+};
+
 class MainWindow : public Gtk::Window
 {
 public:
@@ -71,6 +86,11 @@ protected:
 	Gtk::HPaned m_rootSplitter;
 		Gtk::ScrolledWindow m_leftpanel;
 			Gtk::VBox m_leftbox;
+				Gtk::Frame m_editframe;
+					Gtk::HBox m_editpanel;
+						Gtk::ComboBoxText m_signalwidthbox;
+						Gtk::Entry m_signalnameentry;
+						Gtk::Button m_signalupdatebutton;
 				Gtk::ListViewText m_signallist;
 				Gtk::HBox m_leftbuttons;
 					Gtk::Button m_editbutton;
@@ -79,11 +99,6 @@ protected:
 					Gtk::Button m_sigdownbutton;
 		Gtk::ScrolledWindow m_rightpanel;
 			Gtk::VBox m_rightbox;
-				Gtk::Frame m_editframe;
-					Gtk::HBox m_editpanel;
-						Gtk::ComboBoxText m_signalwidthbox;
-						Gtk::Entry m_signalnameentry;
-						Gtk::Button m_signalupdatebutton;
 				Gtk::Frame m_triggereditframe;
 					Gtk::HBox m_triggereditpanel;
 						Gtk::ComboBoxText m_triggersignalbox;
@@ -96,7 +111,13 @@ protected:
 						Gtk::Button m_triggereditbutton;
 						Gtk::Button m_triggerdeletebutton;
 						Gtk::Button m_capturebutton;
+
+	bool m_bEditingSignal;
+	void OnSignalUpdate();
+	void OnTriggerSignalChanged();
+	void OnTriggerUpdate();
 	
+	std::vector<Signal> m_signals;	
 };
 
 #endif

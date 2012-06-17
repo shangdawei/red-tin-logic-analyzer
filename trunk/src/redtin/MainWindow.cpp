@@ -54,6 +54,8 @@ MainWindow::MainWindow()
 	set_reallocate_redraws(true);
 	set_default_size(1024, 768);
 
+	m_bEditingSignal = false;
+
 	try
 	{
 		//Add widgets
@@ -103,6 +105,13 @@ void MainWindow::CreateWidgets()
 	add(m_rootSplitter);
 		m_rootSplitter.add1(m_leftpanel);
 			m_leftpanel.add(m_leftbox);
+				m_leftbox.pack_start(m_editframe, Gtk::PACK_SHRINK);
+					m_editframe.add(m_editpanel);
+					m_editframe.set_label("Edit Signal");
+						m_editpanel.pack_start(m_signalwidthbox, Gtk::PACK_SHRINK);
+						m_editpanel.pack_start(m_signalnameentry);
+						m_editpanel.pack_end(m_signalupdatebutton, Gtk::PACK_SHRINK);
+						m_signalupdatebutton.set_label("Add Signal");
 				m_leftbox.pack_start(m_signallist);
 				m_leftbox.pack_end(m_leftbuttons, Gtk::PACK_SHRINK);
 					m_leftbuttons.pack_start(m_editbutton, Gtk::PACK_SHRINK);
@@ -115,13 +124,6 @@ void MainWindow::CreateWidgets()
 					m_sigdownbutton.set_label("Move Down");
 		m_rootSplitter.add2(m_rightpanel);
 			m_rightpanel.add(m_rightbox);
-				m_rightbox.pack_start(m_editframe, Gtk::PACK_SHRINK);
-					m_editframe.add(m_editpanel);
-					m_editframe.set_label("Edit Signal");
-						m_editpanel.pack_start(m_signalwidthbox, Gtk::PACK_SHRINK);
-						m_editpanel.pack_start(m_signalnameentry);
-						m_editpanel.pack_end(m_signalupdatebutton, Gtk::PACK_SHRINK);
-						m_signalupdatebutton.set_label("Add Signal");
 				m_rightbox.pack_start(m_triggereditframe, Gtk::PACK_SHRINK);
 					m_triggereditframe.add(m_triggereditpanel);
 					m_triggereditframe.set_label("Trigger when");
@@ -139,25 +141,26 @@ void MainWindow::CreateWidgets()
 						m_triggereditbutton.set_label("Edit");
 						m_triggerdeletebutton.set_label("Delete");
 						m_capturebutton.set_label("Start Capture");
-	m_rootSplitter.set_position(350);
+	m_rootSplitter.set_position(375);
 		
 	//Turn off scrollbars if not necessary
 	m_leftpanel.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	m_rightpanel.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 	
 	//Populate signal width combo box
-	for(int i=1; i<128; i++)
+	for(int i=0; i<128; i++)
 	{
-		char str[16];
-		snprintf(str, 15, "reg[%d:0]", i);
-		m_signalwidthbox.append_text(str);
+		if(i == 0)
+			m_signalwidthbox.append_text("wire");
+		else
+		{
+			char str[16];
+			snprintf(str, 15, "wire[%d:0]", i);
+			m_signalwidthbox.append_text(str);
+		}
 	}
+	m_signalwidthbox.set_active(0);
 	
-	m_triggersignalbox.append_text("buttons");
-	m_triggerbitbox.append_text("bit 0");
-	m_triggerbitbox.append_text("bit 1");
-	m_triggerbitbox.append_text("bit 2");
-	m_triggerbitbox.append_text("bit 3");
 	m_triggeredgebox.append_text("is high");
 	m_triggeredgebox.append_text("is low");
 	m_triggeredgebox.append_text("has a rising edge");
@@ -170,6 +173,69 @@ void MainWindow::CreateWidgets()
 	m_triggerlist.set_column_title(1, "Bit");
 	m_triggerlist.set_column_title(2, "Edge");
 				
+	//Set up signals
+	m_signalupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnSignalUpdate));
+	m_triggersignalbox.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerSignalChanged));
+	m_triggerupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerUpdate));
+				
 	//Set up viewport
 	show_all();
+}
+
+void MainWindow::OnSignalUpdate()
+{
+	if(m_bEditingSignal)
+	{
+		printf("signal update\n");
+	}
+	else
+	{
+		int width = m_signalwidthbox.get_active_row_number() + 1;
+		Glib::ustring name = m_signalnameentry.get_text();
+		//printf("add new signal - width %d, name %s\n", width, name.c_str());
+			
+		//format name
+		char str[16] = "wire";
+		if(width > 1)
+			snprintf(str, 15, "wire[%d:0]", width-1);
+			
+		//Add signal to list
+		int rowid = m_signallist.append_text();
+		m_signallist.set_text(rowid, 0, str);
+		m_signallist.set_text(rowid, 1, name);
+		
+		m_signals.push_back(Signal(width, name));
+		
+		//Update triggersignalbox with new signal list
+		m_triggersignalbox.clear_items();
+		for(size_t i=0; i<m_signals.size(); i++)
+			m_triggersignalbox.append_text(m_signals[i].name);
+	}
+}
+
+void MainWindow::OnTriggerSignalChanged()
+{
+	int sel = m_triggersignalbox.get_active_row_number();
+	
+	//no selection
+	if(sel == -1)
+		m_triggerbitbox.clear_items();
+	else
+	{	
+		//Look up this item
+		Signal& sig = m_signals[sel];
+		
+		//Generate bits
+		for(int i=0; i<sig.width; i++)
+		{
+			char str[16];
+			snprintf(str, 15, "bit %d", i);
+			m_triggerbitbox.append_text(str);
+		}
+	}
+}
+
+void MainWindow::OnTriggerUpdate()
+{
+	printf("update trigger\n");
 }
