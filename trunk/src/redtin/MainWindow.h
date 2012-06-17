@@ -55,6 +55,7 @@
 #include <gtkmm/window.h>
 
 #include <vector>
+#include <map>
 
 class Signal
 {
@@ -67,6 +68,10 @@ public:
 	, name(n)
 	{
 	}
+	
+	//not used except by OnCapture
+	int highbit;
+	int lowbit;
 };
 
 class Trigger
@@ -80,6 +85,17 @@ public:
 		TRIGGER_TYPE_RISING,
 		TRIGGER_TYPE_CHANGE
 	};
+	
+	std::string signalname;		//needed because IDs change when we delete a signal
+	int nbit;
+	int triggertype;
+	
+	Trigger(std::string s, int b, int t)
+	: signalname(s)
+	, nbit(b)
+	, triggertype(t)
+	{
+	}
 };
 
 class MainWindow : public Gtk::Window
@@ -130,7 +146,10 @@ protected:
 	void OnTriggerSignalChanged();
 	void OnTriggerUpdate();
 	
+	void OnCapture();
+	
 	std::vector<Signal> m_signals;	
+	std::vector<Trigger> m_triggers;
 };
 
 #endif
