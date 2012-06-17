@@ -34,73 +34,51 @@
 ******************************************************************************/
 
 /**
-	@file HardwareTestbench_RedTinLogicAnalyzer.v
-	@author Andrew D. Zonenberg
-	@brief Test module for the logic analyzer
+	@file RedTinUARTWrapper.v
+	@brief Wrapper for Red Tin LA plus a UART
  */
-module HardwareTestbench_RedTinLogicAnalyzer(
-	clk_20mhz, leds, buttons, uart_tx, uart_rx
-    );
-	
+module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
+
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	// IO / parameter declarations
-	input wire clk_20mhz;
-	output reg[7:0] leds = 0;
-	input wire[3:0] buttons;
+	// IO declarations
+	
+	input wire clk;
+	input wire[127:0] din;
 	
 	output wire uart_tx;
 	input wire uart_rx;
-
-	wire clk;
-	BUFG clkbuf(.I(clk_20mhz), .O(clk));
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	// Dummy DUT
-	reg[31:0] foobar = 0;
-	always @(posedge clk) begin
-		foobar <= foobar + 1;
-	end
-	
-	//Move buttons into the main clock domain
-	reg[3:0] buttons_buf = 0;
-	always @(posedge clk) begin
-		buttons_buf <= buttons;
-	end
+	// Trigger stuff
+	reg[127:0] trigger_low = 0;
+	reg[127:0] trigger_high = 0;
+	reg[127:0] trigger_rising = 0;
+	reg[127:0] trigger_falling = 0;
+	reg[127:0] trigger_changing = 0;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	// The logic analyzer
-
+	// The actual LA
+	wire capture_done;
+	reg la_reset = 0;
 	reg[8:0] read_addr = 0;
 	wire[127:0] read_data;
-	
-	wire done;
-	reg reset = 0;
-	
 	RedTinLogicAnalyzer analyzer (
 		.clk(clk), 
-		.din({buttons_buf, 4'h0, foobar, 88'h0}),
-		
-		//Trigger when buttons[0] is pressed
-		.trigger_low(128'h0), 
-		.trigger_high(128'h0), 
-		.trigger_rising({ 4'b0001, 4'h0, 32'h0, 88'h0 }), 
-		.trigger_falling(128'h0), 
-		.trigger_changing(128'h0), 
-		.ext_trigger(1'b0),
-		
-		//read data bus
-		.done(done),
-		.reset(reset),
-		.read_addr(read_addr),
-		.read_data(read_data)
+		.din(din), 
+		.trigger_low(trigger_low), 
+		.trigger_high(trigger_high), 
+		.trigger_rising(trigger_rising), 
+		.trigger_falling(trigger_falling), 
+		.trigger_changing(trigger_changing), 
+		.done(capture_done), 
+		.reset(la_reset), 
+		.read_addr(read_addr), 
+		.read_data(read_data), 
+		.ext_trigger(1'b0)
 		);
 		
-	always @(posedge clk) begin
-		leds[0] <= done;
-	end
-		
 	////////////////////////////////////////////////////////////////////////////////////////////////
-	// UART and glue to dump the capture buffer
+	// UART 
 	
 	reg[15:0] uart_clkdiv = 16'd40;	//500 kbaud @ 20 MHz
 	
@@ -124,84 +102,105 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 		.rxactive(uart_rxactive), 
 		.overflow(uart_overflow)
 		);
+		
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Receive logic
 	
-	reg done_buf = 0;
-	reg[3:0] bpos = 0;
-
-	//Mux out the current byte from the output
-	reg[7:0] current_byte = 0;
-	always @(bpos, read_data) begin
-		case(bpos)
-			0: current_byte <= read_data[127:120];
-			1: current_byte <= read_data[119:112];
-			2: current_byte <= read_data[111:104];
-			3: current_byte <= read_data[103:96];
-			4: current_byte <= read_data[96:88];
-			5: current_byte <= read_data[87:80];
-			6: current_byte <= read_data[79:72];
-			7: current_byte <= read_data[71:64];
-			8: current_byte <= read_data[63:56];
-			9: current_byte <= read_data[55:48];
-			10: current_byte <= read_data[47:40];
-			11: current_byte <= read_data[39:32];
-			12: current_byte <= read_data[31:24];
-			13: current_byte <= read_data[23:16];
-			14: current_byte <= read_data[15:8];
-			15: current_byte <= read_data[7:0];
-		endcase
-	end
-
+	/*
+		Packet structure:
+			Sync header - 2 bytes, 0x55AA
+			Opcode - 1 byte
+			Length - 1 byte
+			Data
+	 */
+	
+	localparam OP_NULL					= 8'h00;
+	localparam OP_TRIGGER_LOW			= 8'h01;
+	localparam OP_TRIGGER_HIGH			= 8'h02;
+	localparam OP_TRIGGER_FALLING		= 8'h03;
+	localparam OP_TRIGGER_RISING		= 8'h04;
+	localparam OP_TRIGGER_CHANGING	= 8'h05;
+	localparam OP_RESET_LA				= 8'h06;
+	
+	localparam READ_STATE_IDLE			= 3'h0;		//waiting for first sync word
+	localparam READ_STATE_SYNC1		= 3'h1;		//waiting for second sync word
+	localparam READ_STATE_OPCODE		= 3'h2;		//waiting for opcode
+	localparam READ_STATE_LENGTH		= 3'h3;		//waiting for data
+	localparam READ_STATE_DATA			= 3'h4;		//reading data
+	
+	reg[2:0] read_state = READ_STATE_IDLE;
+	reg[7:0] read_opcode = OP_NULL;
+	reg[7:0] read_length = 0;
+	
 	always @(posedge clk) begin
-		
-		done_buf <= done;
-		uart_txen <= 0;
-		reset <= 0;
-		
-		leds[4] <= uart_rxactive;
-		leds[3] <= uart_txactive;
-		
-		if(done) begin
+	
+		la_reset <= 0;
+	
+		if(uart_rxrdy) begin
+			case(read_state)
 			
-			//Capture just finished! Start reading
-			if(!done_buf) begin
-				read_addr <= 0;
-				bpos <= 0;
-			end
-			
-			//If UART is busy, skip
-			else if(uart_txen || uart_txactive) begin
-				//nothing to do
-			end		
-			
-			//Dumping data
-			else begin
-			
-				//Dump this byte out the UART
-				uart_txen <= 1;
-				uart_txdata <= current_byte;
-				bpos <= bpos + 1;
+				//Expect a 0x55, if not then we have a framing error so ignore it
+				READ_STATE_IDLE: begin
+					if(uart_rxout == 8'h55)
+						read_state <= READ_STATE_SYNC1;
+				end
 				
-				//If we're at the end of the byte, load the next word
-				if(bpos == 15) begin
+				//Expect a 0xAA, if not then framing error
+				READ_STATE_SYNC1: begin
+					if(uart_rxout == 8'hAA)
+						read_state <= READ_STATE_OPCODE;
+					else
+						read_state <= READ_STATE_IDLE;
+				end
 				
-					bpos <= 0;
+				//Read the opcode
+				READ_STATE_OPCODE: begin
+					read_opcode <= uart_rxout;
+					read_state <= READ_STATE_LENGTH;
+				end
 				
-					//but if we're at the end of the buffer, reset the capture module instead
-					if(read_addr == 511) begin
-						read_addr <= 0;
-						reset <= 1;
-						leds[1] <= 1;
-					end
+				//Read the length
+				READ_STATE_LENGTH: begin
+					read_length <= uart_rxout;
+					read_state <= READ_STATE_DATA;
 					
-					else begin
-						read_addr <= read_addr + 1;
+					//Zero-length packets need special processing
+					if(uart_rxout == 0) begin
+						read_state <= READ_STATE_IDLE;
+						
+						//Process it now
+						case(read_opcode)
+							OP_RESET_LA: begin
+								la_reset <= 1;
+							end
+							
+							default: begin
+							end
+						endcase
 					end
 				end
-			
-			end
-			
+				
+				//Read the data 
+				READ_STATE_DATA: begin
+					
+					//TODO: Read the data byte (into what depends on the opcode)
+					
+					read_length <= read_length - 1;
+					
+					//If we just read the last byte, stop
+					if(read_length == 1)
+						read_state <= READ_STATE_IDLE;
+				end
+				
+			endcase
 		end
-		
+	end
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////
+	// Transmit logic
+	
+	always @(posedge clk) begin
+	
 	end
 
 endmodule

@@ -362,4 +362,6 @@ void MainWindow::OnCapture()
 		}
 		printf("\n");
 	}
+	
+	//Connect to the UART
 }

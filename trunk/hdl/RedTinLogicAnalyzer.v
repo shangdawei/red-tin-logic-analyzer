@@ -1,4 +1,38 @@
 `timescale 1ns / 1ps
+/******************************************************************************
+*                                                                             *
+* RED TIN logic analyzer v0.1                                                 *
+*                                                                             *
+* Copyright (c) 2012 Andrew D. Zonenberg                                      *
+* All rights reserved.                                                        *
+*                                                                             *
+* Redistribution and use in source and binary forms, with or without modifi-  *
+* cation, are permitted provided that the following conditions are met:       *
+*                                                                             *
+*    * Redistributions of source code must retain the above copyright notice  *
+*      this list of conditions and the following disclaimer.                  *
+*                                                                             *
+*    * Redistributions in binary form must reproduce the above copyright      *
+*      notice, this list of conditions and the following disclaimer in the    *
+*      documentation and/or other materials provided with the distribution.   *
+*                                                                             *
+*    * Neither the name of the author nor the names of any contributors may be*
+*      used to endorse or promote products derived from this software without *
+*      specific prior written permission.                                     *
+*                                                                             *
+* THIS SOFTWARE IS PROVIDED BY THE AUTHORS "AS IS" AND ANY EXPRESS OR IMPLIED *
+* WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF        *
+* MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN     *
+* NO EVENT SHALL THE AUTHORS BE HELD LIABLE FOR ANY DIRECT, INDIRECT,         *
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT    *
+* NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,   *
+* DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY       *
+* THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT         *
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF    *
+* THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.           *
+*                                                                             *
+******************************************************************************/
+
 /**
 	@file RedTinLogicAnalyzer.v
 	@author Andrew D. Zonenberg
@@ -7,7 +41,7 @@
 module RedTinLogicAnalyzer(
 	clk,
 	din,
-	trigger_low, trigger_high, trigger_rising, trigger_falling,
+	trigger_low, trigger_high, trigger_rising, trigger_falling, trigger_changing,
 	done, reset,
 	read_addr, read_data,
 	ext_trigger
@@ -29,6 +63,7 @@ module RedTinLogicAnalyzer(
 	input wire[DATA_WIDTH-1:0] trigger_high;		//trigger if input is high
 	input wire[DATA_WIDTH-1:0] trigger_rising;	//trigger on rising edge of input
 	input wire[DATA_WIDTH-1:0] trigger_falling;	//trigger on falling edge of input
+	input wire[DATA_WIDTH-1:0] trigger_changing;	//trigger on any edge of input
 
 	//The current system will capture 512 samples in a circular buffer starting 16 clocks
 	//before the trigger condition holds.
@@ -59,20 +94,24 @@ module RedTinLogicAnalyzer(
 	wire[DATA_WIDTH-1:0] data_low;
 	wire[DATA_WIDTH-1:0] data_rising;
 	wire[DATA_WIDTH-1:0] data_falling;
+	wire[DATA_WIDTH-1:0] data_changing;
 	assign data_high = din_buf;
 	assign data_low = ~din_buf;
 	assign data_rising = (din_buf & ~din_buf2);
 	assign data_falling = (~din_buf & din_buf2);
+	assign data_changing = (data_rising | data_falling);
 	
 	//Mask against the trigger.
 	wire[DATA_WIDTH-1:0] data_high_masked;
 	wire[DATA_WIDTH-1:0] data_low_masked;
 	wire[DATA_WIDTH-1:0] data_rising_masked;
 	wire[DATA_WIDTH-1:0] data_falling_masked;
+	wire[DATA_WIDTH-1:0] data_changing_masked;
 	assign data_high_masked = data_high & trigger_high;
 	assign data_low_masked = data_low & trigger_low;
 	assign data_rising_masked = data_rising & trigger_rising;
 	assign data_falling_masked = data_falling & trigger_falling;
+	assign data_changing_masked = data_changing & trigger_changing;
 	
 	//We trigger if the masked values equal the mask (all masked conditions hold)
 	//or the external trigger is asserted.
@@ -80,7 +119,8 @@ module RedTinLogicAnalyzer(
 							(data_high_masked == trigger_high) &&
 							(data_low_masked == trigger_low) &&
 							(data_rising_masked == trigger_rising) &&
-							(data_falling_masked == trigger_falling)
+							(data_falling_masked == trigger_falling) &&
+							(data_changing_masked == trigger_changing)
 							) || ext_trigger;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -111,10 +151,10 @@ module RedTinLogicAnalyzer(
 	wire[8:0] real_read_addr;
 	assign real_read_addr = read_addr + capture_start;
 	
-	reg[1:0] state = 0;	//00 = idle
-								//01 = capturing
-								//10 = wait for reset
-								//11 = invalid
+	reg[1:0] state = 2'b10;	//00 = idle
+									//01 = capturing
+									//10 = wait for reset
+									//11 = invalid
 	assign done = state[1];
 	
 	always @(posedge clk) begin
