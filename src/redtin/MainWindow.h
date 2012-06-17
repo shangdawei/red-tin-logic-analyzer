@@ -150,6 +150,8 @@ protected:
 	
 	std::vector<Signal> m_signals;	
 	std::vector<Trigger> m_triggers;
+	
+	int write_looped(int fd, unsigned char* buf, int count);
 };
 
 #endif
