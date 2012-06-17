@@ -45,6 +45,15 @@
 
 using namespace std;
 
+static const char* g_edgenames[] = 
+{
+	"= 0",
+	"= 1",
+	"falling edge",
+	"rising edge",
+	"changes"
+};
+
 MainWindow::MainWindow()
 : m_signallist(2)
 , m_triggerlist(3)
@@ -178,6 +187,7 @@ void MainWindow::CreateWidgets()
 	m_signalupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnSignalUpdate));
 	m_triggersignalbox.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerSignalChanged));
 	m_triggerupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerUpdate));
+	m_capturebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnCapture));
 				
 	//Set up viewport
 	show_all();
@@ -252,28 +262,104 @@ void MainWindow::OnTriggerUpdate()
 		
 	Signal& sig = m_signals[signal];
 	
-	//TODO: add to internal trigger list
+	//Add to internal trigger list
+	m_triggers.push_back(Trigger(sig.name, nbit, edge));
 	
 	//string formatting
 	char sbit[16] = "";
 	if(sig.width > 1)
 		snprintf(sbit, 15, "[%d]", nbit);
-		
-	static const char* edgenames[] = 
-	{
-		"= 0",
-		"= 1",
-		"falling edge",
-		"rising edge",
-		"changes"
-	};
 	
 	//Add to triggerlist
 	int row = m_triggerlist.append_text();
 	m_triggerlist.set_text(row, 0, sig.name.c_str());
 	m_triggerlist.set_text(row, 1, sbit);
-	m_triggerlist.set_text(row, 2, edgenames[edge]);
+	m_triggerlist.set_text(row, 2, g_edgenames[edge]);
+}
+
+void MainWindow::OnCapture()
+{
+	printf("capture\n");
 	
+	unsigned char trigger_low[16] = {0};
+	unsigned char trigger_high[16] = {0};
+	unsigned char trigger_falling[16] = {0};
+	unsigned char trigger_rising[16] = {0};
+	unsigned char trigger_change[16] = {0};
 	
-	printf("update trigger\n");
+	unsigned char* triggers[5]=
+	{
+		trigger_low,
+		trigger_high,
+		trigger_falling,
+		trigger_rising,
+		trigger_change
+	};
+	
+	std::map<string, Signal*> signalmap;
+	
+	//Update the bit positions of each signal
+	int bitpos = 127;
+	for(size_t i=0; i<m_signals.size(); i++)
+	{
+		Signal& sig = m_signals[i];
+		sig.highbit = bitpos;
+		sig.lowbit = bitpos - sig.width + 1;
+		if(sig.width == 1)
+			printf("  Signal %s is data[%d]\n",  sig.name.c_str(), sig.highbit);
+		else
+			printf("  Signal %s[%d:0] is data[%d:%d]\n",  sig.name.c_str(), sig.width-1, sig.highbit, sig.lowbit);
+		bitpos -= sig.width;
+		
+		if(bitpos < 0)
+		{
+			printf("Too many signals specified!\n");
+			return;
+		}
+		
+		signalmap[sig.name] = &sig;
+	}
+	
+	//For each trigger, find the appropriate bits
+	for(size_t i=0; i<m_triggers.size(); i++)
+	{
+		Trigger& trig = m_triggers[i];
+		Signal& sig = *signalmap[trig.signalname];
+		
+		if(trig.triggertype > 5)
+		{
+			printf("Invalid trigger type\n");
+			return;
+		}
+		
+		printf("  Trigger of type %d on bit %d of signal %s\n", trig.triggertype, trig.nbit, trig.signalname.c_str());
+		
+		//Get the bit number for the signal
+		int nbit = sig.lowbit + trig.nbit;
+		printf("    = data[%d]\n", nbit);
+		
+		//Break the bit number down into a word number and a byte number
+		int nword = 15 - (nbit >> 3);
+		int col = nbit & 7;
+		printf("    = mask[%d] bit %d\n", nword, col);
+		
+		//Update the trigger arrays
+		triggers[trig.triggertype][nword] |= (0x01 << col);
+	}
+	
+	//Print output masks
+	for(int i=0; i<5; i++)
+	{
+		printf("Trigger mask %20s = ", g_edgenames[i]);
+		for(int j=0; j<16; j++)
+		{
+			int val = triggers[i][j];
+			for(int k=0; k<8; k++)
+			{
+				printf("%c", (val & 0x80) ? '1' : '0');
+				val <<= 1;
+			}
+		}
+		printf("\n");
+	}
 }
