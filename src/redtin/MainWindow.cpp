@@ -444,12 +444,93 @@ void MainWindow::OnCapture()
 	if(write_looped(hfile, reset_buf, 4) != 4)
 		return;
 		
-	//Wait for data to come back
+	//Wait for data to come back, then read it
 	printf("Ready...\n");
+	unsigned char read_data[512][16];
+	for(int i=0; i<512; i++)
+	{
+		if(16 != read_looped(hfile, read_data[i], 16))
+			return;
+	}
+	printf("Got the data\n");
 	
-	
-	//Done
+	//Done with the UART
 	close(hfile);
+	
+	//Create the VCD file
+	FILE* stemp = fopen("/tmp/redtin_temp.vcd", "w+");
+	if(stemp == NULL)
+	{
+		perror("couldn't create temp file");
+		return;
+	}
+		
+	//Get the current time
+	time_t now;
+	time(&now);
+	struct tm now_split;
+	localtime_r(&now, &now_split);
+	
+	//Format the VCD header
+	fprintf(stemp, "$timescale 25ns $end\n");			//25ns = period of one half-clock
+														//TODO: make this configurable
+	fprintf(stemp, "$date %4d-%02d-%02d %02d:%02d:%d $end\n",
+		now_split.tm_year+1900, now_split.tm_mon, now_split.tm_mday,
+		now_split.tm_hour, now_split.tm_min, now_split.tm_sec);
+	fprintf(stemp, "$version RED TIN v0.1 $end\n");
+	//The special signal "capture_clk" is the clock of our sampling module
+	fprintf(stemp, "$var reg 1 * capture_clk $end\n");
+	for(size_t i=0; i<m_signals.size(); i++)
+		fprintf(stemp, "$var wire %d %c %s $end\n", m_signals[i].width, static_cast<char>('A' + i), m_signals[i].name.c_str());
+	fprintf(stemp, "$enddefinition $end\n");
+	
+	//Write the data to the VCD
+	for(int i=0; i<512; i++)
+	{
+		//Clock goes high
+		fprintf(stemp,
+				"#%d\n"
+				"1*\n",
+				i*2
+			);
+			
+		//Everything changes on the rising edge		
+		for(size_t j=0; j<m_signals.size(); j++)
+		{
+			Signal& sig = m_signals[j];
+			
+			std::string value = signal_to_binary(read_data[i], sig.lowbit, sig.highbit);
+			
+			//1-bit signal
+			if(sig.lowbit == sig.highbit)
+				fprintf(stemp, "%s%c\n", value.c_str(), static_cast<char>('A' + j));
+			
+			//Multi-bit signal
+			else
+				fprintf(stemp, "b%s %c\n", value.c_str(), static_cast<char>('A' + j) );
+		}
+		fprintf(stemp, "\n");
+		
+		//then clock goes low
+		fprintf(stemp,
+				"#%d\n"
+				"0*\n"
+				"\n",
+				i*2 + 1);
+	}
+	
+	fflush(stemp);
+	fclose(stemp);
+	
+	//Spawn gtkwave
+	pid_t gtkwave_pid = fork();
+	if(gtkwave_pid == 0)
+	{
+		execl("/usr/bin/gtkwave", "/usr/bin/gtkwave", "/tmp/redtin_temp.vcd", NULL);
+		perror("child: failed to spawn gtkwave");
+	}
+	else if(gtkwave_pid == -1)
+		perror("failed to spawn gtkwave");
 }
 
 int MainWindow::write_looped(int fd, unsigned char* buf, int count)
@@ -469,4 +550,43 @@ int MainWindow::write_looped(int fd, unsigned char* buf, int count)
 	}
 	
 	return count;
+}
+
+int MainWindow::read_looped(int fd, unsigned char* buf, int count)
+{
+	unsigned char* p = buf;
+	int bytes_left = count;
+	int x = 0;
+	while( (x = read(fd, p, bytes_left)) > 0)
+	{
+		if(x < 0)
+		{
+			perror("fail to read");
+			return -1;
+		}
+		bytes_left -= x;
+		p += x;
+	}
+	
+	return count;
+}
+
+/**
+	@brief Converts a signal to a binary string
+ */
+std::string MainWindow::signal_to_binary(unsigned char* data, int lowbit, int highbit)
+{
+	string ret;
+	
+	for(int i=highbit; i>=lowbit; i--)
+	{
+		int nword = 15 - (i >> 3);
+		int col = i & 7;
+		
+		int j = (data[nword] >> col) & 1;
+		char c = j + '0';
+		ret += c;
+	}
+	
+	return ret;
 }
