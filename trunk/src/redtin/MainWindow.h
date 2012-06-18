@@ -152,6 +152,9 @@ protected:
 	std::vector<Trigger> m_triggers;
 	
 	int write_looped(int fd, unsigned char* buf, int count);
+	int read_looped(int fd, unsigned char* buf, int count);
+	
+	std::string signal_to_binary(unsigned char* data, int lowbit, int highbit);
 };
 
 #endif
