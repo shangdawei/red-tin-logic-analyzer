@@ -192,9 +192,17 @@ void MainWindow::CreateWidgets()
 				
 	//Set up signals
 	m_signalupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnSignalUpdate));
+	m_deletebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnSignalDelete));
 	m_triggersignalbox.signal_changed().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerSignalChanged));
 	m_triggerupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerUpdate));
 	m_capturebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnCapture));
+	m_triggerdeletebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerDelete));
+				
+	//Disable unimplemented buttons
+	m_editbutton.set_sensitive(false);
+	m_sigupbutton.set_sensitive(false);
+	m_sigdownbutton.set_sensitive(false);
+	m_triggereditbutton.set_sensitive(false);
 				
 	//Set up viewport
 	show_all();
@@ -468,11 +476,13 @@ void MainWindow::OnCapture()
 	//Done with the UART
 	close(hfile);
 	
+	/*
 	//Debug - shove the raw data into a file
 	FILE* ftemp = fopen("uart_dump.bin", "w");
 	for(int i=0; i<512; i++)
 		fwrite(read_data[i], 1, 16, ftemp);
 	fclose(ftemp);
+	*/
 	
 	//Create the VCD file
 	FILE* stemp = fopen("/tmp/redtin_temp.vcd", "w+");
@@ -606,4 +616,24 @@ std::string MainWindow::signal_to_binary(unsigned char* data, int lowbit, int hi
 	}
 	
 	return ret;
+}
+
+void MainWindow::OnSignalDelete()
+{
+	//Make sure something is selected
+	Glib::RefPtr<Gtk::TreeSelection> sel = m_signallist.get_selection();
+	if(sel->count_selected_rows() == 0)
+		return;
+	Glib::RefPtr<Gtk::ListStore> model = Glib::RefPtr<Gtk::ListStore>::cast_static(m_signallist.get_model());
+	Gtk::TreeModel::iterator it = sel->get_selected();
+	
+	//Delete from our internal store
+	m_signals.erase(m_signals.begin() + model->get_path(it)[0]);
+	
+	//Delete from tree model
+	model->erase( it );
+}
+
+void MainWindow::OnTriggerDelete()
+{
 }
