@@ -120,12 +120,12 @@ protected:
 						Gtk::ComboBoxText m_signalwidthbox;
 						Gtk::Entry m_signalnameentry;
 						Gtk::Button m_signalupdatebutton;
-				Gtk::ListViewText m_signallist;
 				Gtk::HBox m_leftbuttons;
 					Gtk::Button m_editbutton;
 					Gtk::Button m_deletebutton;
 					Gtk::Button m_sigupbutton;
 					Gtk::Button m_sigdownbutton;
+				Gtk::ListViewText m_signallist;
 		Gtk::ScrolledWindow m_rightpanel;
 			Gtk::VBox m_rightbox;
 				Gtk::Frame m_triggereditframe;
@@ -134,6 +134,9 @@ protected:
 						Gtk::ComboBoxText m_triggerbitbox;
 						Gtk::ComboBoxText m_triggeredgebox;
 						Gtk::Button m_triggerupdatebutton;
+				Gtk::Frame m_samplefreqframe;
+					Gtk::HBox m_samplefreqpanel;
+						Gtk::Entry m_samplefreqbox;
 				Gtk::VBox m_triggerpanel;
 					Gtk::ListViewText m_triggerlist;
 					Gtk::HBox m_triggereditbuttons;
