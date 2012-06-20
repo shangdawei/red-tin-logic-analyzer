@@ -72,7 +72,7 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 
 	RedTinUARTWrapper analyzer (
 		.clk(clk), 
-		.din({buttons_buf, foobar, 88'h0, 4'hC}), 
+		.din({buttons_buf, 28'h0C0FFEE, foobar, 32'hfeedface, 32'hc0def00d}), 
 		.uart_tx(uart_tx), 
 		.uart_rx(uart_rx),
 		.leds(leds)
