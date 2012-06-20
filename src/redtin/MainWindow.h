@@ -143,8 +143,10 @@ protected:
 
 	bool m_bEditingSignal;
 	void OnSignalUpdate();
+	void OnSignalDelete();
 	void OnTriggerSignalChanged();
 	void OnTriggerUpdate();
+	void OnTriggerDelete();
 	
 	void OnCapture();
 	
