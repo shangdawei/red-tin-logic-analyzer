@@ -461,7 +461,7 @@ void MainWindow::OnCapture()
 	{
 		if(16 != read_looped(hfile, read_data[i], 16))
 			return;
-		printf("Got %d samples so far!\n", i);
+		//printf("Got %d samples so far!\n", i);
 	}
 	printf("Got the data\n");
 	

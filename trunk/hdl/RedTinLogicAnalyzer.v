@@ -160,12 +160,8 @@ module RedTinLogicAnalyzer(
 	always @(posedge clk) begin
 		
 		//If in idle or capture state, write to the buffer
-		//if(!state[1])
-		//capture_buf[capture_waddr] <= din;
-		//if(!state[1])
-		//	capture_buf[capture_waddr] <= 128'h00c0ffeefeedfacedeadbeefbaadc0de;
 		if(!state[1])
-			capture_buf[capture_waddr] <= 128'h0;
+			capture_buf[capture_waddr] <= din;
 		
 		case(state)
 			
@@ -198,8 +194,7 @@ module RedTinLogicAnalyzer(
 			
 			//Read stuff and wait for reset
 			2'b10: begin
-				//read_data <= capture_buf[real_read_addr];
-				read_data <= 128'hdeadbeefbaadc0de01234567cdcdcdcd;
+				read_data <= capture_buf[real_read_addr];
 								
 				if(reset) begin
 					state <= 2'b00;
