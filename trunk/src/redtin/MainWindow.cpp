@@ -140,6 +140,10 @@ void MainWindow::CreateWidgets()
 					m_sigdownbutton.set_label("Move Down");
 		m_rootSplitter.add2(m_rightpanel);
 			m_rightpanel.add(m_rightbox);
+				m_rightbox.pack_start(m_samplefreqframe, Gtk::PACK_SHRINK);
+					m_samplefreqframe.add(m_samplefreqpanel);
+					m_samplefreqframe.set_label("Sampling frequency (MHz, must match \"clk\" input to LA core)");
+						m_samplefreqpanel.pack_start(m_samplefreqbox);
 				m_rightbox.pack_start(m_triggereditframe, Gtk::PACK_SHRINK);
 					m_triggereditframe.add(m_triggereditpanel);
 					m_triggereditframe.set_label("Trigger when");
@@ -189,6 +193,8 @@ void MainWindow::CreateWidgets()
 	m_triggerlist.set_column_title(0, "Signal");
 	m_triggerlist.set_column_title(1, "Bit");
 	m_triggerlist.set_column_title(2, "Edge");
+	
+	m_samplefreqbox.set_text("20.000");
 				
 	//Set up signals
 	m_signalupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnSignalUpdate));
@@ -463,7 +469,6 @@ void MainWindow::OnCapture()
 			return;
 		}
 	}
-	printf("Got it, waiting for data\n");
 	unsigned char read_data[512][16];
 	for(int i=0; i<512; i++)
 	{
@@ -475,14 +480,6 @@ void MainWindow::OnCapture()
 	
 	//Done with the UART
 	close(hfile);
-	
-	/*
-	//Debug - shove the raw data into a file
-	FILE* ftemp = fopen("uart_dump.bin", "w");
-	for(int i=0; i<512; i++)
-		fwrite(read_data[i], 1, 16, ftemp);
-	fclose(ftemp);
-	*/
 	
 	//Create the VCD file
 	FILE* stemp = fopen("/tmp/redtin_temp.vcd", "w+");
@@ -498,9 +495,14 @@ void MainWindow::OnCapture()
 	struct tm now_split;
 	localtime_r(&now, &now_split);
 	
+	//Get sampling frequency
+	string strRate = m_samplefreqbox.get_text();
+	float frequency = atof(strRate.c_str());	//in MHz
+	float period = 1000 / frequency;			//in nanoseconds
+	
 	//Format the VCD header
-	fprintf(stemp, "$timescale 25ns $end\n");			//25ns = period of one half-clock
-														//TODO: make this configurable
+	fprintf(stemp, "$timescale %fns $end\n", period/2);	//period of 1/2 clock cycle
+														//so we can show falling edges
 	fprintf(stemp, "$date %4d-%02d-%02d %02d:%02d:%d $end\n",
 		now_split.tm_year+1900, now_split.tm_mon, now_split.tm_mday,
 		now_split.tm_hour, now_split.tm_min, now_split.tm_sec);
@@ -636,4 +638,16 @@ void MainWindow::OnSignalDelete()
 
 void MainWindow::OnTriggerDelete()
 {
+	//Make sure something is selected
+	Glib::RefPtr<Gtk::TreeSelection> sel = m_triggerlist.get_selection();
+	if(sel->count_selected_rows() == 0)
+		return;
+	Glib::RefPtr<Gtk::ListStore> model = Glib::RefPtr<Gtk::ListStore>::cast_static(m_triggerlist.get_model());
+	Gtk::TreeModel::iterator it = sel->get_selected();
+	
+	//Delete from our internal store
+	m_triggers.erase(m_triggers.begin() + model->get_path(it)[0]);
+	
+	//Delete from tree model
+	model->erase( it );
 }
