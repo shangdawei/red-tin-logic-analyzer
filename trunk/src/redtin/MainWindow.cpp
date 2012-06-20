@@ -320,7 +320,7 @@ void MainWindow::OnCapture()
 		*/
 		bitpos -= sig.width;
 		
-		if(bitpos < 0)
+		if((bitpos+1) < 0)
 		{
 			printf("Too many signals specified!\n");
 			return;
@@ -445,17 +445,34 @@ void MainWindow::OnCapture()
 		return;
 		
 	//Wait for data to come back, then read it
-	printf("Ready...\n");
+	printf("Waiting for sync header...\n");
+	char ch = 0;
+	while(ch != 0x55)
+	{
+		if(1 != read(hfile, &ch, 1))
+		{
+			perror("couldn't read sync byte");
+			return;
+		}
+	}
+	printf("Got it, waiting for data\n");
 	unsigned char read_data[512][16];
 	for(int i=0; i<512; i++)
 	{
 		if(16 != read_looped(hfile, read_data[i], 16))
 			return;
+		printf("Got %d samples so far!\n", i);
 	}
 	printf("Got the data\n");
 	
 	//Done with the UART
 	close(hfile);
+	
+	//Debug - shove the raw data into a file
+	FILE* ftemp = fopen("uart_dump.bin", "w");
+	for(int i=0; i<512; i++)
+		fwrite(read_data[i], 1, 16, ftemp);
+	fclose(ftemp);
 	
 	//Create the VCD file
 	FILE* stemp = fopen("/tmp/redtin_temp.vcd", "w+");

@@ -84,7 +84,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 	
 	reg[15:0] uart_clkdiv = 16'd40;	//500 kbaud @ 20 MHz
 	
-	reg[7:0] uart_txdata = 0;
+	reg[7:0] uart_txdata = 8'hEE;
 	reg uart_txen = 0;
 	wire uart_txactive;
 	wire uart_rxactive;
@@ -246,6 +246,8 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 		endcase
 	end
 
+	reg sending_sync_header = 0;
+
 	always @(posedge clk) begin
 		
 		done_buf <= capture_done;
@@ -259,18 +261,25 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 		
 		if(capture_done) begin
 		
-			leds[3] <= 1;
-			
 			//Capture just finished! Start reading
 			if(!done_buf) begin
 				read_addr <= 0;
 				bpos <= 0;
+				leds[3] <= 1;
+				sending_sync_header <= 1;
 			end
 			
 			//If UART is busy, skip
 			else if(uart_txen || uart_txactive) begin
 				//nothing to do
-			end		
+			end
+
+			//Send sync header
+			else if(sending_sync_header) begin
+				uart_txen <= 1;
+				uart_txdata <= 8'h55;
+				sending_sync_header <= 0;
+			end			
 			
 			//Dumping data
 			else begin
@@ -290,6 +299,8 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 					if(read_addr == 511) begin
 						read_addr <= 0;
 						leds[7] <= 1;
+						leds[3] <= 0;
+						leds[6] <= 0;
 					end
 					
 					else begin
