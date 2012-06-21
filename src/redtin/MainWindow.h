@@ -45,6 +45,7 @@
 #include <gtkmm/combobox.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/entry.h>
+#include <gtkmm/filechooserdialog.h>
 #include <gtkmm/frame.h>
 #include <gtkmm/liststore.h>
 #include <gtkmm/listviewtext.h>
@@ -160,6 +161,8 @@ protected:
 	int read_looped(int fd, unsigned char* buf, int count);
 	
 	std::string signal_to_binary(unsigned char* data, int lowbit, int highbit);
+	
+	bool OnClose(GdkEventAny* event);
 };
 
 #endif

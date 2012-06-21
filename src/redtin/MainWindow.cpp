@@ -203,6 +203,8 @@ void MainWindow::CreateWidgets()
 	m_triggerupdatebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerUpdate));
 	m_capturebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnCapture));
 	m_triggerdeletebutton.signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::OnTriggerDelete));
+	
+	signal_delete_event().connect(sigc::mem_fun(*this, &MainWindow::OnClose));
 				
 	//Disable unimplemented buttons
 	m_editbutton.set_sensitive(false);
@@ -650,4 +652,79 @@ void MainWindow::OnTriggerDelete()
 	
 	//Delete from tree model
 	model->erase( it );
+}
+
+bool MainWindow::OnClose(GdkEventAny* /*event*/)
+{
+	Gtk::MessageDialog msg("Save signal and trigger list?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
+	int button = msg.run();
+	
+	if(button == Gtk::RESPONSE_YES)
+	{
+		Gtk::FileChooserDialog dlg("Save signal configuration", Gtk::FILE_CHOOSER_ACTION_SAVE);
+		dlg.set_select_multiple(false);
+		dlg.set_create_folders(true);
+		dlg.add_button(Gtk::Stock::CANCEL, Gtk::RESPONSE_CANCEL);
+		dlg.add_button("Save", Gtk::RESPONSE_OK);
+		
+		Gtk::FileFilter filter;
+		filter.set_name("Signal configuration files (*.scfg)");
+		filter.add_pattern("*.scfg");
+		dlg.add_filter(filter);
+		
+		if(dlg.run() != Gtk::RESPONSE_OK)
+			return true;
+		
+		//Create the file
+		string fname = dlg.get_filename();
+		if(fname == "")
+			return true;
+		FILE* fp = fopen(fname.c_str(), "w");
+		
+		//Save everything
+		//Config file format is mostly a subset of Verilog to make it nice and readable.
+		
+		//Sample rate
+		string sample_rate = m_samplefreqbox.get_text();
+		fprintf(fp, "parameter SAMPLE_RATE_MHZ = %s;\n", sample_rate.c_str());
+		
+		//Signals
+		for(size_t i=0; i<m_signals.size(); i++)
+		{
+			Signal& sig = m_signals[i];
+			fprintf(fp, "wire[%d:0] %s;\n", sig.width-1, sig.name.c_str());
+		}
+		
+		//Triggers
+		//add_trigger_condition(posedge foobar[3]);
+		for(size_t i=0; i<m_triggers.size(); i++)
+		{
+			Trigger& trig = m_triggers[i];
+			fprintf(fp, "add_trigger_condition(");
+			switch(trig.triggertype)
+			{
+				case Trigger::TRIGGER_TYPE_LOW:
+					fprintf(fp, "!%s[%d]", trig.signalname.c_str(), trig.nbit);
+					break;
+				case Trigger::TRIGGER_TYPE_HIGH:
+					fprintf(fp, "%s[%d]", trig.signalname.c_str(), trig.nbit);
+					break;
+				case Trigger::TRIGGER_TYPE_RISING:
+					fprintf(fp, "posedge %s[%d]", trig.signalname.c_str(), trig.nbit);
+					break;
+				case Trigger::TRIGGER_TYPE_FALLING:
+					fprintf(fp, "negedge %s[%d]", trig.signalname.c_str(), trig.nbit);
+					break;
+				case Trigger::TRIGGER_TYPE_CHANGE:
+					fprintf(fp, "posedge %s[%d] or negedge %s[%d]", trig.signalname.c_str(), trig.nbit, trig.signalname.c_str(), trig.nbit);
+					break;
+			}
+			fprintf(fp, ");\n");
+		}
+		
+		fclose(fp);
+	}
+	
+	//keep going
+	return false;
 }
