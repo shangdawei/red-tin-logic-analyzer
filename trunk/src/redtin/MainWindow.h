@@ -102,7 +102,7 @@ public:
 class MainWindow : public Gtk::Window
 {
 public:
-	MainWindow();
+	MainWindow(std::string fname);
 	~MainWindow();
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +163,8 @@ protected:
 	std::string signal_to_binary(unsigned char* data, int lowbit, int highbit);
 	
 	bool OnClose(GdkEventAny* event);
+	
+	void LoadConfig(std::string fname);
 };
 
 #endif
