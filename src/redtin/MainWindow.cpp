@@ -61,7 +61,7 @@ static const char* g_edgenames[] =
 	"changes"
 };
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(std::string fname)
 : m_signallist(2)
 , m_triggerlist(3)
 {
@@ -76,6 +76,10 @@ MainWindow::MainWindow()
 	{
 		//Add widgets
 		CreateWidgets();
+		
+		//Load the config file, if any
+		if(!fname.empty())
+			LoadConfig(fname);
 	}
 	catch(std::string err)
 	{
@@ -727,4 +731,116 @@ bool MainWindow::OnClose(GdkEventAny* /*event*/)
 	
 	//keep going
 	return false;
+}
+
+void MainWindow::LoadConfig(std::string fname)
+{
+	//Read the config file
+	FILE* fp = fopen(fname.c_str(), "r");
+	char line[1024];
+	while(fgets(line, 1023, fp))
+	{
+		//Read the opcode
+		char word[256];
+		sscanf(line, "%255[a-z_]", word);
+		std::string sw = word;
+		
+		//Parameters - global settings of some sort
+		if(sw == "parameter")
+		{
+			char name[256];
+			char value[256];
+			sscanf(line, "parameter %255[^ =] = %255[^;];", name, value);
+			string sname = name;
+			
+			if(sname == "SAMPLE_RATE_MHZ")
+				m_samplefreqbox.set_text(value);
+			else
+				printf("unrecognized parameter \"%s\"\n", name);
+		}
+		
+		//Wires - signals
+		else if(sw == "wire")
+		{
+			char name[256];
+			int maxbit;
+			sscanf(line, "wire[%d:0] %255[^;];", &maxbit, name);
+			
+			m_signals.push_back(Signal(maxbit+1, name));
+			
+			char swidth[128] = "wire";
+			if(maxbit != 0)
+				snprintf(swidth, 127, "wire[%d:0]", maxbit);
+			
+			int rowid = m_signallist.append_text();
+			m_signallist.set_text(rowid, 0, swidth);
+			m_signallist.set_text(rowid, 1, name);
+		}
+		
+		//Triggers
+		else if(sw == "add_trigger_condition")
+		{
+			char body[256];
+			sscanf(line, "add_trigger_condition( %255[^)] );", body);
+			
+			bool posedge = (strstr(body, "posedge") != NULL);
+			bool negedge = (strstr(body, "negedge") != NULL);
+			bool found_or = (strstr(body, "or") != NULL);
+			
+			// !foo
+			int type = 0;
+			char* namestart = body;
+			if(body[0] == '!')
+			{
+				type = Trigger::TRIGGER_TYPE_LOW;
+				namestart ++;
+			}
+			
+			//posedge foo
+			else if(posedge && !negedge)
+			{
+				type = Trigger::TRIGGER_TYPE_RISING;
+				namestart += strlen("posedge");
+			}
+			
+			//negedge foo
+			else if(negedge && !posedge)
+			{
+				type = Trigger::TRIGGER_TYPE_FALLING;
+				namestart += strlen("negedge");
+			}
+			
+			//posedge foo or negedge foo
+			else if(posedge && negedge && found_or)
+			{
+				type = Trigger::TRIGGER_TYPE_CHANGE;
+				namestart += strlen("posedge");
+			}
+			
+			//foo
+			else
+				type = Trigger::TRIGGER_TYPE_HIGH;
+				
+			//Read the name
+			char name[128];
+			int bit;
+			sscanf(namestart, " %127[^ [][%d]", name, &bit);
+			
+			m_triggers.push_back(Trigger(name, bit, type));
+			
+			//Add to triggerlist
+			char sbit[32];
+			snprintf(sbit, 31, "%d", bit);
+			int row = m_triggerlist.append_text();
+			m_triggerlist.set_text(row, 0, name);
+			m_triggerlist.set_text(row, 1, sbit);
+			m_triggerlist.set_text(row, 2, g_edgenames[type]);
+		}
+		
+		//Something's wrong, skip the line
+		else
+			printf("unrecognized keyword \"%s\" in config file\n", word);
+	}
+
+	fclose(fp);
 }

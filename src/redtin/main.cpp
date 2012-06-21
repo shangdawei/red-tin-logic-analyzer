@@ -43,9 +43,14 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 int main(int argc, char* argv[])
 #endif
 {
-	//Standard gtkmm main function
 	Gtk::Main kit(argc, argv);
- 	MainWindow wnd;
+	
+	//See if we have a file name
+	std::string fname;
+	if(argc > 1)
+		fname = argv[1];
+	
+ 	MainWindow wnd(fname);
 	kit.run(wnd);
 
 	return 0;
