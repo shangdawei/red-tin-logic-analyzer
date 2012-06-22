@@ -1,0 +1,544 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/azonenberg/native/programming/redtin/hdl/testHardwareTestbench_RedTinLogicAnalyzer_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="testHardwareTestbench_RedTinLogicAnalyzer" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="23" />
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/leds" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">leds[7:0]</obj_property>
+      <obj_property name="ObjectShortName">leds[7:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/clk_20mhz" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk_20mhz</obj_property>
+      <obj_property name="ObjectShortName">clk_20mhz</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/buttons" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">buttons[3:0]</obj_property>
+      <obj_property name="ObjectShortName">buttons[3:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/ready" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ready</obj_property>
+      <obj_property name="ObjectShortName">ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/clkmgr/LOCKED" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">LOCKED</obj_property>
+      <obj_property name="ObjectShortName">LOCKED</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider148" type="divider">
+      <obj_property name="label">New Divider</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">128 128 255</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/uart_tx" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">uart_tx</obj_property>
+      <obj_property name="ObjectShortName">uart_tx</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/uart_rx" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">uart_rx</obj_property>
+      <obj_property name="ObjectShortName">uart_rx</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/uart/txrdy" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">txrdy</obj_property>
+      <obj_property name="ObjectShortName">txrdy</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider7" type="divider">
+      <obj_property name="label">New Divider</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">128 128 255</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">trigger</obj_property>
+      <obj_property name="ObjectShortName">trigger</obj_property>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/done" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">done</obj_property>
+      <obj_property name="ObjectShortName">done</obj_property>
+   </wvobject>
+   <wvobject fp_name="group1543" type="group">
+      <obj_property name="label">Full</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">din[127:0]</obj_property>
+         <obj_property name="ObjectShortName">din[127:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din_buf" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">din_buf[127:0]</obj_property>
+         <obj_property name="ObjectShortName">din_buf[127:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus447" type="vbus" db_ref_id="1">
+      <obj_property name="label">din_small</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din[127]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[127]</obj_property>
+         <obj_property name="ObjectShortName">din[127]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din[126]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[126]</obj_property>
+         <obj_property name="ObjectShortName">din[126]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din[125]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[125]</obj_property>
+         <obj_property name="ObjectShortName">din[125]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din[124]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[124]</obj_property>
+         <obj_property name="ObjectShortName">din[124]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din[123]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[123]</obj_property>
+         <obj_property name="ObjectShortName">din[123]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="vbus460" type="vbus" db_ref_id="1">
+      <obj_property name="label">din_buf_small</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din_buf[127]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[127]</obj_property>
+         <obj_property name="ObjectShortName">din_buf[127]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din_buf[126]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[126]</obj_property>
+         <obj_property name="ObjectShortName">din_buf[126]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din_buf[125]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[125]</obj_property>
+         <obj_property name="ObjectShortName">din_buf[125]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din_buf[124]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[124]</obj_property>
+         <obj_property name="ObjectShortName">din_buf[124]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/din_buf[123]" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">[123]</obj_property>
+         <obj_property name="ObjectShortName">din_buf[123]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group186" type="group">
+      <obj_property name="label">Trigger mask</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group1542" type="group">
+         <obj_property name="label">Full</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_low" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">trigger_low[127:0]</obj_property>
+            <obj_property name="ObjectShortName">trigger_low[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_high" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">trigger_high[127:0]</obj_property>
+            <obj_property name="ObjectShortName">trigger_high[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_rising" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">trigger_rising[127:0]</obj_property>
+            <obj_property name="ObjectShortName">trigger_rising[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_falling" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">trigger_falling[127:0]</obj_property>
+            <obj_property name="ObjectShortName">trigger_falling[127:0]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus998" type="vbus" db_ref_id="1">
+         <obj_property name="label">trigger_falling_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_falling[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">trigger_falling[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_falling[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">trigger_falling[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_falling[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">trigger_falling[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_falling[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">trigger_falling[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_falling[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">trigger_falling[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus595" type="vbus" db_ref_id="1">
+         <obj_property name="label">trigger_low_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_low[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">trigger_low[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_low[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">trigger_low[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_low[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">trigger_low[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_low[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">trigger_low[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_low[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">trigger_low[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus729" type="vbus" db_ref_id="1">
+         <obj_property name="label">trigger_high_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_high[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">trigger_high[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_high[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">trigger_high[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_high[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">trigger_high[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_high[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">trigger_high[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_high[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">trigger_high[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus869" type="vbus" db_ref_id="1">
+         <obj_property name="label">trigger_rising_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_rising[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">trigger_rising[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_rising[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">trigger_rising[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_rising[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">trigger_rising[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_rising[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">trigger_rising[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/trigger_rising[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">trigger_rising[123]</obj_property>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group187" type="group">
+      <obj_property name="label">Channel status</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group1544" type="group">
+         <obj_property name="label">Full</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_high[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_high[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_low[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_low[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_rising[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_rising[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_falling[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_falling[127:0]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus1132" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_high_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_high[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_high[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_high[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_high[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_high[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus1267" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_low_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_low[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_low[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_low[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_low[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_low[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus1401" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_rising_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_rising[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_rising[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_rising[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_rising[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_rising[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus1535" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_falling_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_falling[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_falling[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_falling[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_falling[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_falling[123]</obj_property>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group188" type="group">
+      <obj_property name="label">Masked channel status</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="group1679" type="group">
+         <obj_property name="label">Full</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising_masked" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_rising_masked[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_rising_masked[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low_masked" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_low_masked[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_low_masked[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high_masked" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_high_masked[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_high_masked[127:0]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling_masked" type="array" db_ref_id="1">
+            <obj_property name="ElementShortName">data_falling_masked[127:0]</obj_property>
+            <obj_property name="ObjectShortName">data_falling_masked[127:0]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus1673" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_high_masked_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high_masked[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_high_masked[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high_masked[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_high_masked[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high_masked[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_high_masked[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high_masked[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_high_masked[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_high_masked[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_high_masked[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus1808" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_low_masked_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low_masked[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_low_masked[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low_masked[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_low_masked[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low_masked[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_low_masked[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low_masked[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_low_masked[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_low_masked[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_low_masked[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus1942" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_rising_masked_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising_masked[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_rising_masked[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising_masked[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_rising_masked[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising_masked[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_rising_masked[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising_masked[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_rising_masked[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_rising_masked[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_rising_masked[123]</obj_property>
+         </wvobject>
+      </wvobject>
+      <wvobject fp_name="vbus2076" type="vbus" db_ref_id="1">
+         <obj_property name="label">data_falling_masked_small</obj_property>
+         <obj_property name="DisplayName">label</obj_property>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling_masked[127]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[127]</obj_property>
+            <obj_property name="ObjectShortName">data_falling_masked[127]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling_masked[126]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[126]</obj_property>
+            <obj_property name="ObjectShortName">data_falling_masked[126]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling_masked[125]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[125]</obj_property>
+            <obj_property name="ObjectShortName">data_falling_masked[125]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling_masked[124]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[124]</obj_property>
+            <obj_property name="ObjectShortName">data_falling_masked[124]</obj_property>
+         </wvobject>
+         <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/data_falling_masked[123]" type="logic" db_ref_id="1">
+            <obj_property name="ElementShortName">[123]</obj_property>
+            <obj_property name="ObjectShortName">data_falling_masked[123]</obj_property>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group189" type="group">
+      <obj_property name="label">Output</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/read_data" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">read_data[127:0]</obj_property>
+         <obj_property name="ObjectShortName">read_data[127:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/read_addr" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">read_addr[8:0]</obj_property>
+         <obj_property name="ObjectShortName">read_addr[8:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/real_read_addr" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">real_read_addr[8:0]</obj_property>
+         <obj_property name="ObjectShortName">real_read_addr[8:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/bpos" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">bpos[3:0]</obj_property>
+         <obj_property name="ObjectShortName">bpos[3:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/current_byte" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">current_byte[7:0]</obj_property>
+         <obj_property name="ObjectShortName">current_byte[7:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group190" type="group">
+      <obj_property name="label">Capture</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/capture_buf" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">capture_buf[511:0,127:0]</obj_property>
+         <obj_property name="ObjectShortName">capture_buf[511:0,127:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/capture_start" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">capture_start[8:0]</obj_property>
+         <obj_property name="ObjectShortName">capture_start[8:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/capture_end" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">capture_end[8:0]</obj_property>
+         <obj_property name="ObjectShortName">capture_end[8:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/capture_waddr" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">capture_waddr[8:0]</obj_property>
+         <obj_property name="ObjectShortName">capture_waddr[8:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="/testHardwareTestbench_RedTinLogicAnalyzer/uut/analyzer/state" type="array" db_ref_id="1">
+      <obj_property name="ElementShortName">state[1:0]</obj_property>
+      <obj_property name="ObjectShortName">state[1:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider127" type="divider">
+      <obj_property name="label">New Divider</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="BkColor">128 128 255</obj_property>
+      <obj_property name="TextColor">230 230 230</obj_property>
+   </wvobject>
+</wave_config>
