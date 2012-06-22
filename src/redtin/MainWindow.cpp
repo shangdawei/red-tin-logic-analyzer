@@ -843,4 +843,9 @@ void MainWindow::LoadConfig(std::string fname)
 	}
 
 	fclose(fp);
+	
+	//Update triggersignalbox with new signal list
+	m_triggersignalbox.clear_items();
+	for(size_t i=0; i<m_signals.size(); i++)
+		m_triggersignalbox.append_text(m_signals[i].name);
 }
