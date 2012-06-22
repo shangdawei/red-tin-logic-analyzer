@@ -50,7 +50,8 @@ N-sample circular buffer. When waiting for a trigger event the buffer is continu
 Mth position in the buffer. Once triggered the start and stop pointers are frozen and data is stored until the end of
 the buffer is reached. This results in M samples before the trigger and (N-M) after. Currently N and M have values of
 512 and 16, respectively. In a future release the depth N will likely be parameterizable, and the the value of M will be
-adjustable at run time between captures.
+adjustable at run time between captures. The sample width is currently hardcoded to 128 (partial parameterization
+has been implemented; the beta release will either complete or remove this).
 
 \paragraph*{}
 The {\bf interface wrapper} is responsible for bridging communications from the capture module to a PC. The interface
@@ -87,9 +88,17 @@ do
 \pagebreak
 \section{Capture module usage}
 
+\paragraph*{}
+Integration of the capture module into an existing FPGA design is quite simple. Simply create an instance of the
+appropriate capture wrapper (RedTinUARTWrapper is the only one implemented in the alpha), connect the ``clk" input
+to the sampling clock, and connect the signals of interest to the ``din" input. Any additional signals are dependent on
+the specific wrapper interface and should be connected as mentioned in the documentation for that wrapper.
 
-\pagebreak
 \section{User interface operation}
+
+\paragraph*{}
+The user interface consists of two panels separated by a splitter bar. The left panel is used to define the signals
+being observed and the right panel is used to specify triggers and capture parameters.
 
 \paragraph*{}
 \begin{figure}[h]
@@ -97,6 +106,56 @@ do
 \caption{Screenshot of UI}
 \label{gui-overview}
 \end{figure}
+
+\subsection{Signals}
+\paragraph*{}
+To define the signals being watched, select the width from the drop-down box at the top of the left-hand panel,
+give the signal a name, and click the ``add signal" button. The high-order bit of the first signal is mapped to
+din[127] of the capture module and subsequent signals are packed in from left to right.
+
+\paragraph*{}
+In the alpha release, although signals can be deleted from the list, there is no support for editing or reordering
+signals. Any error requires deleting and re-adding the affected signals.
+
+\subsection{Triggers}
+\paragraph*{}
+To create a trigger, select the signal of interest from the ``trigger when" dropdown list, select the bit of interest,
+specify the desired state (high, low, rising edge, falling edge, or change), and click the ``add trigger" button. Note
+that ALL trigger conditions must hold simultaneously to trigger the logic analyzer. There is currently no support for
+multiple sets of conditions however this may be added in a future release.
+
+\subsection{Capturing}
+\paragraph*{}
+To begin a capture, verify the sampling frequency specified in the UI matches the ``clk" frequency supplied to the
+capture module; then click the ``start capture" button. Once the trigger condition has occurred, the waveform viewer
+will be launched to view the captured data.
+
+\paragraph*{}
+In the alpha, the source of capture data is hard coded to be a UART on /dev/ttyUSB0 and cannot be changed except by
+recompiling the UI application.
+
+\paragraph*{}
+There is no support in the alpha release for canceling a pending capture. This will be added in a future release.
+
+\subsection{Signal configuration files}
+\paragraph*{}
+When closing the UI, a prompt is displayed allowing the list of signals and triggers to be saved to a .scfg (signal
+configuration) file. To load a saved scfg file, simply pass the filename as the first argument to the ``redtin" binary.
+
+\pagebreak
+\section{Writing a new wrapper module}
+
+\paragraph*{}
+This section will be written after a stable API for wrapper modules has been developed, most likely in time for an
+Alpha 2 or Beta release.
+
+\pagebreak
+\section{Protocol descriptions}
+
+\subsection{UART wrapper}
+
+\paragraph*{}
+This section will be written in a later release.
 
 \pagebreak
 \section{Errata}

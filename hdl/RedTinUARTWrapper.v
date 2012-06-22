@@ -37,7 +37,7 @@
 	@file RedTinUARTWrapper.v
 	@brief Wrapper for Red Tin LA plus a UART
  */
-module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
+module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// IO declarations
@@ -47,8 +47,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 	
 	output wire uart_tx;
 	input wire uart_rx;
-	
-	output reg[7:0] leds = 0;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger stuff
@@ -177,7 +175,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 						//Process it now
 						case(read_opcode)
 							OP_RESET_LA: begin
-								leds[0] <= 1;
 								la_reset <= 1;
 							end
 							
@@ -189,7 +186,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 				
 				//Read the data 
 				READ_STATE_DATA: begin
-					leds[1] <= 1;
 					
 					//Read the data byte (into what depends on the opcode)
 					//Triggers transmit high order byte first
@@ -209,7 +205,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 					//If we just read the last byte, stop
 					if(read_length == 1) begin
 						read_state <= READ_STATE_IDLE;
-						leds[2] <= 1;
 					end
 				end
 				
@@ -253,19 +248,12 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 		done_buf <= capture_done;
 		uart_txen <= 0;
 		
-		if(la_reset) begin
-			leds[7] <= 0;
-			leds[6] <= 0;
-			leds[3] <= 0;
-		end
-		
 		if(capture_done) begin
 		
 			//Capture just finished! Start reading
 			if(!done_buf) begin
 				read_addr <= 0;
 				bpos <= 0;
-				leds[3] <= 1;
 				sending_sync_header <= 1;
 			end
 			
@@ -283,7 +271,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 			
 			//Dumping data
 			else begin
-				leds[6] <= 1;
 			
 				//Dump this byte out the UART
 				uart_txen <= 1;
@@ -298,9 +285,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 					//but if we're at the end of the buffer, stop
 					if(read_addr == 511) begin
 						read_addr <= 0;
-						leds[7] <= 1;
-						leds[3] <= 0;
-						leds[6] <= 0;
 					end
 					
 					else begin
