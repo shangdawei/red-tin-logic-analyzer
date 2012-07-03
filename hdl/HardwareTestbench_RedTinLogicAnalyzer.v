@@ -45,7 +45,7 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// IO / parameter declarations
 	input wire clk_20mhz;
-	output reg[7:0] leds = 0;
+	output wire[7:0] leds;
 	input wire[3:0] buttons;
 	
 	output wire uart_tx;
@@ -59,7 +59,6 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 	reg[31:0] foobar = 0;
 	always @(posedge clk) begin
 		foobar <= foobar + 1;
-		leds <= 8'h55;
 	end
 	
 	//Move buttons into the main clock domain
@@ -75,7 +74,8 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 		.clk(clk), 
 		.din({buttons_buf, 28'h0C0FFEE, foobar, 32'hfeedface, 32'hc0def00d}), 
 		.uart_tx(uart_tx), 
-		.uart_rx(uart_rx)
+		.uart_rx(uart_rx),
+		.leds(leds)
 		);
 
 endmodule

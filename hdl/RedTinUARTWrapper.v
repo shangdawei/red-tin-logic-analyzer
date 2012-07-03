@@ -37,7 +37,7 @@
 	@file RedTinUARTWrapper.v
 	@brief Wrapper for Red Tin LA plus a UART
  */
-module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
+module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// IO declarations
@@ -47,6 +47,8 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 	
 	output wire uart_tx;
 	input wire uart_rx;
+	
+	output reg[7:0] leds = 0;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger stuff
@@ -80,7 +82,8 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// UART 
 	
-	reg[15:0] uart_clkdiv = 16'd40;	//500 kbaud @ 20 MHz
+	//reg[15:0] uart_clkdiv = 16'd40;	//500 kbaud @ 20 MHz
+	reg[15:0] uart_clkdiv = 16'd174;	//115.2 kbaud @ 20 MHz
 	
 	reg[7:0] uart_txdata = 8'hEE;
 	reg uart_txen = 0;
@@ -176,6 +179,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 						case(read_opcode)
 							OP_RESET_LA: begin
 								la_reset <= 1;
+								leds[0] <= 1;
 							end
 							
 							default: begin
@@ -267,10 +271,12 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 				uart_txen <= 1;
 				uart_txdata <= 8'h55;
 				sending_sync_header <= 0;
+				leds[1] <= 1;
 			end			
 			
 			//Dumping data
 			else begin
+				leds[2] <= 1;
 			
 				//Dump this byte out the UART
 				uart_txen <= 1;
