@@ -406,7 +406,7 @@ void MainWindow::OnCapture()
 	termios flags;
 	memset(&flags, 0, sizeof(flags));
 	tcgetattr(hfile, &flags);
-	flags.c_cflag = B500000 | CS8 | CLOCAL | CREAD;
+	flags.c_cflag = /*B500000*/B115200 | CS8 | CLOCAL | CREAD;
 	flags.c_iflag = 0;
 	flags.c_cc[VMIN] = 1;
 	if(0 != tcflush(hfile, TCIFLUSH))
@@ -474,6 +474,7 @@ void MainWindow::OnCapture()
 			perror("couldn't read sync byte");
 			return;
 		}
+		//printf("%c", ch);
 	}
 	unsigned char read_data[512][16];
 	for(int i=0; i<512; i++)
@@ -504,10 +505,10 @@ void MainWindow::OnCapture()
 	//Get sampling frequency
 	string strRate = m_samplefreqbox.get_text();
 	float frequency = atof(strRate.c_str());	//in MHz
-	float period = 1000 / frequency;			//in nanoseconds
+	float period = 1000000 / frequency;			//in picoseconds
 	
 	//Format the VCD header
-	fprintf(stemp, "$timescale %fns $end\n", period/2);	//period of 1/2 clock cycle
+	fprintf(stemp, "$timescale %.0fps $end\n", period/2);	//period of 1/2 clock cycle
 														//so we can show falling edges
 	fprintf(stemp, "$date %4d-%02d-%02d %02d:%02d:%d $end\n",
 		now_split.tm_year+1900, now_split.tm_mon, now_split.tm_mday,
