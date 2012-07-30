@@ -144,6 +144,12 @@ void MainWindow::CreateWidgets()
 					m_sigdownbutton.set_label("Move Down");
 		m_rootSplitter.add2(m_rightpanel);
 			m_rightpanel.add(m_rightbox);
+			
+				m_rightbox.pack_start(m_viewflagsframe, Gtk::PACK_SHRINK);
+					m_viewflagsframe.add(m_viewflagspanel);
+					m_viewflagsframe.set_label("Additional viewer command line arguments");
+						m_viewflagspanel.pack_start(m_viewflagsbox);
+			
 				m_rightbox.pack_start(m_samplefreqframe, Gtk::PACK_SHRINK);
 					m_samplefreqframe.add(m_samplefreqpanel);
 					m_samplefreqframe.set_label("Sampling frequency (MHz, must match \"clk\" input to LA core)");
@@ -474,7 +480,7 @@ void MainWindow::OnCapture()
 			perror("couldn't read sync byte");
 			return;
 		}
-		//printf("%c", ch);
+		//printf("%c %02x\n", ch, ch & 0xFF);
 	}
 	unsigned char read_data[512][16];
 	for(int i=0; i<512; i++)
@@ -558,15 +564,35 @@ void MainWindow::OnCapture()
 	fflush(stemp);
 	fclose(stemp);
 	
+	//Get command line arguments
+	string sargs = m_viewflagsbox.get_text();
+	char* psargs = new char[sargs.length() + 1];
+	strcpy(psargs, sargs.c_str());
+	
+	//Parse arguments
+	std::vector<const char*> args;
+	args.push_back("/usr/bin/gtkwave");
+	args.push_back("/tmp/redtin_temp.vcd");
+	char* s = strtok(psargs, " ");
+	if(s != NULL)
+	{
+		args.push_back(s);
+		while(NULL != (s = strtok(NULL, " ")))
+			args.push_back(s);
+	}
+	args.push_back(NULL);
+	
 	//Spawn gtkwave
 	pid_t gtkwave_pid = fork();
 	if(gtkwave_pid == 0)
 	{
-		execl("/usr/bin/gtkwave", "/usr/bin/gtkwave", "/tmp/redtin_temp.vcd", NULL);
+		execv("/usr/bin/gtkwave", (char**)&args[0]);
 		perror("child: failed to spawn gtkwave");
 	}
 	else if(gtkwave_pid == -1)
 		perror("failed to spawn gtkwave");
+		
+	delete[] psargs;
 }
 
 int MainWindow::write_looped(int fd, unsigned char* buf, int count)
@@ -661,7 +687,7 @@ void MainWindow::OnTriggerDelete()
 
 bool MainWindow::OnClose(GdkEventAny* /*event*/)
 {
-	Gtk::MessageDialog msg("Save signal and trigger list?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
+	Gtk::MessageDialog msg("Save signal configuration?", false, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO, true);
 	int button = msg.run();
 	
 	if(button == Gtk::RESPONSE_YES)
@@ -692,6 +718,10 @@ bool MainWindow::OnClose(GdkEventAny* /*event*/)
 		//Sample rate
 		string sample_rate = m_samplefreqbox.get_text();
 		fprintf(fp, "parameter SAMPLE_RATE_MHZ = %s;\n", sample_rate.c_str());
+		
+		//Arguments
+		string sargs = m_viewflagsbox.get_text();
+		fprintf(fp, "parameter VIEWER_ARGS = %s;\n", sargs.c_str());
 		
 		//Signals
 		for(size_t i=0; i<m_signals.size(); i++)
@@ -750,12 +780,14 @@ void MainWindow::LoadConfig(std::string fname)
 		if(sw == "parameter")
 		{
 			char name[256];
-			char value[256];
-			sscanf(line, "parameter %255[^ =] = %255[^;];", name, value);
+			char value[1024];
+			sscanf(line, "parameter %255[^ =] = %1023[^;];", name, value);
 			string sname = name;
 			
 			if(sname == "SAMPLE_RATE_MHZ")
 				m_samplefreqbox.set_text(value);
+			else if(sname == "VIEWER_ARGS")
+				m_viewflagsbox.set_text(value);
 			else
 				printf("unrecognized parameter \"%s\"\n", name);
 		}
