@@ -37,7 +37,7 @@
 	@file RedTinUARTWrapper.v
 	@brief Wrapper for Red Tin LA plus a UART
  */
-module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
+module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// IO declarations
@@ -47,8 +47,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 	
 	output wire uart_tx;
 	input wire uart_rx;
-	
-	output reg[7:0] leds = 0;
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger stuff
@@ -82,8 +80,8 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// UART 
 	
-	//reg[15:0] uart_clkdiv = 16'd40;	//500 kbaud @ 20 MHz
-	reg[15:0] uart_clkdiv = 16'd174;	//115.2 kbaud @ 20 MHz
+	//reg[15:0] uart_clkdiv = 16'd160;	//500 kbaud @ 80 MHz
+	reg[15:0] uart_clkdiv = 16'd694;		//115.2 kbaud @ 80 MHz
 	
 	reg[7:0] uart_txdata = 8'hEE;
 	reg uart_txen = 0;
@@ -179,7 +177,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 						case(read_opcode)
 							OP_RESET_LA: begin
 								la_reset <= 1;
-								leds[0] <= 1;
 							end
 							
 							default: begin
@@ -204,7 +201,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 						end
 					endcase
 					
-					read_length <= read_length - 1;
+					read_length <= read_length - 8'd1;
 					
 					//If we just read the last byte, stop
 					if(read_length == 1) begin
@@ -230,7 +227,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 			1: current_byte <= read_data[119:112];
 			2: current_byte <= read_data[111:104];
 			3: current_byte <= read_data[103:96];
-			4: current_byte <= read_data[96:88];
+			4: current_byte <= read_data[95:88];
 			5: current_byte <= read_data[87:80];
 			6: current_byte <= read_data[79:72];
 			7: current_byte <= read_data[71:64];
@@ -271,17 +268,15 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 				uart_txen <= 1;
 				uart_txdata <= 8'h55;
 				sending_sync_header <= 0;
-				leds[1] <= 1;
 			end			
 			
 			//Dumping data
 			else begin
-				leds[2] <= 1;
 			
 				//Dump this byte out the UART
 				uart_txen <= 1;
 				uart_txdata <= current_byte;
-				bpos <= bpos + 1;
+				bpos <= bpos + 4'h1;
 				
 				//If we're at the end of the byte, load the next word
 				if(bpos == 15) begin
@@ -294,7 +289,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx, leds);
 					end
 					
 					else begin
-						read_addr <= read_addr + 1;
+						read_addr <= read_addr + 9'h1;
 					end
 				end
 			
