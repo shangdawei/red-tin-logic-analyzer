@@ -45,14 +45,54 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// IO / parameter declarations
 	input wire clk_20mhz;
-	output wire[7:0] leds;
+	output reg[7:0] leds = 8'hF0;
 	input wire[3:0] buttons;
 	
 	output wire uart_tx;
 	input wire uart_rx;
 
+	wire clk_20mhz_bufg;
+	BUFG clkbuf(.I(clk_20mhz), .O(clk_20mhz_bufg));
+	
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	// Clock generation
+	
 	wire clk;
-	BUFG clkbuf(.I(clk_20mhz), .O(clk));
+	wire clk_n;
+
+	DCM_SP #(
+		.CLKDV_DIVIDE(2.0),
+		.CLKFX_DIVIDE(1),						//clk is 20 MHz * 4 = 80 MHz
+		.CLKFX_MULTIPLY(4),
+		.CLKIN_DIVIDE_BY_2("FALSE"),
+		.CLKIN_PERIOD(50.0),
+		.CLKOUT_PHASE_SHIFT("NONE"),
+		.CLK_FEEDBACK("NONE"),
+		.DESKEW_ADJUST("SYSTEM_SYNCHRONOUS"),
+		.DLL_FREQUENCY_MODE("LOW"),
+		.DUTY_CYCLE_CORRECTION("TRUE"),
+		.PHASE_SHIFT(0),
+		.STARTUP_WAIT("TRUE")
+	) clkmgr (
+	//.CLK0(CLK0),
+	//.CLK180(CLK180),
+	//.CLK270(CLK270),
+	//.CLK2X(CLK2X),
+	//.CLK2X180(CLK2X180),
+	//.CLK90(CLK90),
+	//.CLKDV(CLKDV),
+	.CLKFX(clk),
+	.CLKFX180(clk_n),
+	//.LOCKED(LOCKED),
+	//.PSDONE(PSDONE),
+	//.STATUS(STATUS),
+	//.CLKFB(CLKFB),
+	.CLKIN(clk_20mhz_bufg),
+	.PSCLK(1'b0),
+	.PSEN(1'b0),
+	.PSINCDEC(1'b0),
+	.RST(1'b0)
+	);
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
 	// Dummy DUT
@@ -72,10 +112,13 @@ module HardwareTestbench_RedTinLogicAnalyzer(
 
 	RedTinUARTWrapper analyzer (
 		.clk(clk), 
-		.din({buttons_buf, 28'h0C0FFEE, foobar, 32'hfeedface, 32'hc0def00d}), 
+		.din({
+			/* {buttons_buf, 28'h0C0FFEE, foobar, 32'hfeedface, 32'hc0def00d} */
+			buttons,
+			124'h0
+			}), 
 		.uart_tx(uart_tx), 
-		.uart_rx(uart_rx),
-		.leds(leds)
+		.uart_rx(uart_rx)
 		);
 
 endmodule
