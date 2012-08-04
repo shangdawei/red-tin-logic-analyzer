@@ -52,6 +52,10 @@
 
 using namespace std;
 
+int bit_test_pair(int state_0, int state_1, int current_1, int old_1, int current_0, int old_0);
+int bit_test(int state, int current, int old);
+int MakeTruthTable(int state_0, int state_1);
+
 static const char* g_edgenames[] = 
 {
 	"= 0",
@@ -312,22 +316,11 @@ void MainWindow::OnTriggerUpdate()
 
 void MainWindow::OnCapture()
 {
-	printf("capture\n");
+	printf("capture\n");	
 	
-	unsigned char trigger_low[16] = {0};
-	unsigned char trigger_high[16] = {0};
-	unsigned char trigger_falling[16] = {0};
-	unsigned char trigger_rising[16] = {0};
-	unsigned char trigger_change[16] = {0};
-	
-	unsigned char* triggers[5]=
-	{
-		trigger_low,
-		trigger_high,
-		trigger_falling,
-		trigger_rising,
-		trigger_change
-	};
+	int state_vector[128];
+	for(int i=0; i<128; i++)
+		state_vector[i] = Trigger::TRIGGER_TYPE_DONTCARE;
 	
 	std::map<string, Signal*> signalmap;
 	
@@ -338,12 +331,6 @@ void MainWindow::OnCapture()
 		Signal& sig = m_signals[i];
 		sig.highbit = bitpos;
 		sig.lowbit = bitpos - sig.width + 1;
-		/*
-		if(sig.width == 1)
-			printf("  Signal %s is data[%d]\n",  sig.name.c_str(), sig.highbit);
-		else
-			printf("  Signal %s[%d:0] is data[%d:%d]\n",  sig.name.c_str(), sig.width-1, sig.highbit, sig.lowbit);
-		*/
 		bitpos -= sig.width;
 		
 		if((bitpos+1) < 0)
@@ -355,7 +342,7 @@ void MainWindow::OnCapture()
 		signalmap[sig.name] = &sig;
 	}
 	
-	//For each trigger, find the appropriate bits
+	//Set up the trigger array
 	for(size_t i=0; i<m_triggers.size(); i++)
 	{
 		Trigger& trig = m_triggers[i];
@@ -367,38 +354,58 @@ void MainWindow::OnCapture()
 			return;
 		}
 		
-		//printf("  Trigger of type %d on bit %d of signal %s\n", trig.triggertype, trig.nbit, trig.signalname.c_str());
-		
 		//Get the bit number for the signal
 		int nbit = sig.lowbit + trig.nbit;
-		//printf("    = data[%d]\n", nbit);
-		
-		//Break the bit number down into a word number and a byte number
-		int nword = 15 - (nbit >> 3);
-		int col = nbit & 7;
-		//printf("    = mask[%d] bit %d\n", nword, col);
-		
-		//Update the trigger arrays
-		triggers[trig.triggertype][nword] |= (0x01 << col);
+		state_vector[nbit] = trig.triggertype;
 	}
 	
-	//Print output masks
+	//Build the full bitmask set
+	int truth_tables[64] = {0};
+	for(int i=0; i<64; i++)
+		truth_tables[i] = MakeTruthTable(state_vector[2*i], state_vector[2*i + 1]);
+	
 	/*
-	for(int i=0; i<5; i++)
-	{
-		printf("Trigger mask %20s = ", g_edgenames[i]);
-		for(int j=0; j<16; j++)
-		{
-			int val = triggers[i][j];
-			for(int k=0; k<8; k++)
-			{
-				printf("%c", (val & 0x80) ? '1' : '0');
-				val <<= 1;
-			}
-		}
-		printf("\n");
-	}
+		128 channels packed into 64 LUTs (two bits for each).
+		Configuration is done in eight columns of 8 LUTs (16 channels) each.
+		
+		Channels [0,1]....[14,15] are loaded at once, with one bit of data per clock.
+		[16,17]...[30,31] are in the next row, etc.
+		
+		Only the low 16 bits of each LUT are meaningful; 16 "don't care" bytes must be clocked
+		into the high half.
+		
+		In total the configuration bitstream is 256 bytes (256 bits per column).
+		
+		The first configuration word is bit masks 56...63.
 	*/
+	
+	//Generate the configuration bitstream for the proper column format
+	unsigned char bitstream[256];
+	for(int i=0; i<256; i++)
+	{
+		int flipped_bitnum = 255 - i;				//index from the start of the shift register
+		int bitnum = flipped_bitnum & 0x1F;			//Index of the current bit in this LUT
+		int lutnum = flipped_bitnum >> 5;			//Index of the current LUT
+			
+		//Find the appropriate truth tables and pull bits out	
+		unsigned char cword = 0;
+		for(int col=0; col<8; col++)
+		{
+			int masknum = 8*lutnum + col;
+			int bitval = (truth_tables[masknum] >> bitnum) & 0x1;
+			cword |= (bitval << col);
+		}
+		
+		bitstream[i] = cword;
+	}
+	
+	printf("Bitstream: \n");
+	for(int i=0; i<256; i++)
+	{
+		printf("%02x ", bitstream[i] & 0xFF);
+		if( (i & 0xF) == 0xF)
+			printf("\n");
+	}
 	
 	//Connect to the UART
 	int hfile = open("/dev/ttyUSB0", O_RDWR);
@@ -412,7 +419,7 @@ void MainWindow::OnCapture()
 	termios flags;
 	memset(&flags, 0, sizeof(flags));
 	tcgetattr(hfile, &flags);
-	flags.c_cflag = /*B500000*/B115200 | CS8 | CLOCAL | CREAD;
+	flags.c_cflag = B115200 | CS8 | CLOCAL | CREAD;
 	flags.c_iflag = 0;
 	flags.c_cc[VMIN] = 1;
 	if(0 != tcflush(hfile, TCIFLUSH))
@@ -426,50 +433,21 @@ void MainWindow::OnCapture()
 		return;
 	}
 	
-	//Send the capture masks to the board
-	/*
-		Packet format for trigger settings
-		55 AA		(sync header)
-		1 byte		(opcode)
-		10			(data length)
-		16 bytes	(data)
-	 */
-	unsigned char mask_buf[20] = 
+	//Send trigger config data to the board
+	unsigned int header = 0xFEEDFACE;
+	if(4 != write_looped(hfile, (unsigned char*)&header, 4))
 	{
-		0x55,	/* sync header */
-		0xaa,
-		0,		/* opcode here */
-		0x10, 	/* message length is constant */
-		0,		/* placeholder for data */
-		0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0
-	};
-	for(int i=0; i<5; i++)
-	{
-		//Opcodes are in same order as "triggers" array but 1-based
-		mask_buf[2] = i+1;
-		
-		//Copy data
-		for(int j=0; j<16; j++)
-			mask_buf[4+j] = triggers[i][j];
-		
-		/*	
-		printf("Sending packet: ");
-		for(int j=0; j<20; j++)
-			printf("%02x", mask_buf[j]);
-		printf("\n");
-		*/
-			
-		//Write the data
-		if(write_looped(hfile, mask_buf, 20) != 20)
-			return;
+		perror("couldn't send header");
+		return;
 	}
 	
-	//Send the reset command to the board
-	unsigned char reset_buf[4]= { 0x55, 0xaa, 0x06, 0x0 };
-	if(write_looped(hfile, reset_buf, 4) != 4)
+	//Send bitstream to the board
+	if(256 != write_looped(hfile, bitstream, 256))
+	{
+		perror("couldn't send bitstream");
 		return;
-		
+	}
+	
 	//Wait for data to come back, then read it
 	printf("Waiting for sync header...\n");
 	char ch = 0;
@@ -881,4 +859,51 @@ void MainWindow::LoadConfig(std::string fname)
 	m_triggersignalbox.clear_items();
 	for(size_t i=0; i<m_signals.size(); i++)
 		m_triggersignalbox.append_text(m_signals[i].name);
+}
+
+int bit_test_pair(int state_0, int state_1, int current_1, int old_1, int current_0, int old_0)
+{
+	return bit_test(state_0, current_0, old_0) && bit_test(state_1, current_1, old_1);
+}
+
+int bit_test(int state, int current, int old)
+{
+	switch(state)
+	{
+		case Trigger::TRIGGER_TYPE_LOW:
+			return (!current);
+		case Trigger::TRIGGER_TYPE_HIGH:
+			return (current);
+		case Trigger::TRIGGER_TYPE_RISING:
+			return (current && !old);
+		case Trigger::TRIGGER_TYPE_FALLING:
+			return (!current && old);
+		case Trigger::TRIGGER_TYPE_CHANGE:
+			return (current != old);
+		case Trigger::TRIGGER_TYPE_DONTCARE:
+			return 1;
+	}
+	
+	return 0;
+}
+
+int MakeTruthTable(int state_0, int state_1)
+{
+	int table = 0;
+	for(int current_0 = 0; current_0 <= 1; current_0 ++)
+	{
+		for(int current_1 = 0; current_1 <= 1; current_1 ++)
+		{
+			for(int old_0 = 0; old_0 <= 1; old_0 ++)
+			{
+				for(int old_1 = 0; old_1 <= 1; old_1 ++)
+				{
+					int bitnum = (old_1 << 3) | (current_1 << 2) | (old_0 << 1) | (current_0);
+					int bitval = bit_test_pair(state_0, state_1, current_1, old_1, current_0, old_0);
+					table |= (bitval << bitnum);
+				}
+			}					
+		}
+	}
+	return table;
 }

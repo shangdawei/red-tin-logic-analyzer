@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="/home/azonenberg/native/programming/redtin/trunk/hdl/srltest_isim_beh.wdb" id="1" type="auto">
+         <top_modules>
+            <top_module name="glbl" />
+            <top_module name="srltest" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <WVObjectSize size="5" />
+   <wvobject fp_name="/srltest/clk" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject fp_name="/srltest/ready" type="logic" db_ref_id="1">
+      <obj_property name="ElementShortName">ready</obj_property>
+      <obj_property name="ObjectShortName">ready</obj_property>
+   </wvobject>
+   <wvobject fp_name="group8" type="group">
+      <obj_property name="label">Channels</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/srltest/old" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">old[1:0]</obj_property>
+         <obj_property name="ObjectShortName">old[1:0]</obj_property>
+      </wvobject>
+      <wvobject fp_name="/srltest/current" type="array" db_ref_id="1">
+         <obj_property name="ElementShortName">current[1:0]</obj_property>
+         <obj_property name="ObjectShortName">current[1:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group9" type="group">
+      <obj_property name="label">Results</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/srltest/dout" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">dout</obj_property>
+         <obj_property name="ObjectShortName">dout</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject fp_name="group7" type="group">
+      <obj_property name="label">Reprogramming</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject fp_name="/srltest/din" type="logic" db_ref_id="1">
+         <obj_property name="ElementShortName">din</obj_property>
+         <obj_property name="ObjectShortName">din</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

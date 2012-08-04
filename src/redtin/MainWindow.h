@@ -84,7 +84,9 @@ public:
 		TRIGGER_TYPE_HIGH,
 		TRIGGER_TYPE_FALLING,
 		TRIGGER_TYPE_RISING,
-		TRIGGER_TYPE_CHANGE
+		TRIGGER_TYPE_CHANGE,
+		
+		TRIGGER_TYPE_DONTCARE
 	};
 	
 	std::string signalname;		//needed because IDs change when we delete a signal

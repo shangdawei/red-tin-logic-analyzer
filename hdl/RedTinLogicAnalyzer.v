@@ -41,12 +41,13 @@
 module RedTinLogicAnalyzer(
 	clk,
 	din,
-	trigger_low, trigger_high, trigger_rising, trigger_falling, trigger_changing,
+	
+	reconfig_din, reconfig_ce,
+	
 	done, reset,
-	read_addr, read_data,
-	ext_trigger
+	read_addr, read_data
     );
-	 
+	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// IO / parameter declarations
 
@@ -56,14 +57,10 @@ module RedTinLogicAnalyzer(
 	//Capture data. Up to 128 bits for now, may be wider later on.
 	parameter DATA_WIDTH = 128;
 	input wire[DATA_WIDTH-1:0] din;
-
-	//Trigger masks. All conditions must be met in order to trigger.
-	//A 1 bit means the condition must hold, a 0 bit means don't care.
-	input wire[DATA_WIDTH-1:0] trigger_low;		//trigger if input is low
-	input wire[DATA_WIDTH-1:0] trigger_high;		//trigger if input is high
-	input wire[DATA_WIDTH-1:0] trigger_rising;	//trigger on rising edge of input
-	input wire[DATA_WIDTH-1:0] trigger_falling;	//trigger on falling edge of input
-	input wire[DATA_WIDTH-1:0] trigger_changing;	//trigger on any edge of input
+	
+	//Reconfiguration data for loading trigger settings
+	input wire[7:0] reconfig_din;
+	input wire reconfig_ce;
 
 	//The current system will capture 512 samples in a circular buffer starting 16 clocks
 	//before the trigger condition holds.
@@ -74,14 +71,13 @@ module RedTinLogicAnalyzer(
 	input wire reset;
 	output wire done;
 	
-	input wire ext_trigger;
-
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger logic
 	
 	wire trigger;
 	
 	//Save the old value (used for edge detection)
+	//We buffer twice in order to ensure that we don't lengthen any critical paths.
 	reg[DATA_WIDTH-1:0] din_buf = 0;
 	reg[DATA_WIDTH-1:0] din_buf2 = 0;
 	always @(posedge clk) begin
@@ -89,39 +85,128 @@ module RedTinLogicAnalyzer(
 		din_buf2 <= din_buf;
 	end
 	
-	//First, check which conditions hold
-	wire[DATA_WIDTH-1:0] data_high;
-	wire[DATA_WIDTH-1:0] data_low;
-	wire[DATA_WIDTH-1:0] data_rising;
-	wire[DATA_WIDTH-1:0] data_falling;
-	wire[DATA_WIDTH-1:0] data_changing;
-	assign data_high = din_buf;
-	assign data_low = ~din_buf;
-	assign data_rising = (din_buf & ~din_buf2);
-	assign data_falling = (~din_buf & din_buf2);
-	assign data_changing = (data_rising | data_falling);
+	/*
+		128 channels packed into 64 LUTs (two bits for each).
+		Configuration is done in eight columns of 8 LUTs (16 channels) each.
+		
+		Channels [0,1]....[14,15] are loaded at once, with one bit of data per clock.
+		[16,17]...[30,31] are in the next row, etc.
+		
+		Only the low 16 bits of each LUT are meaningful; 16 "don't care" bytes must be clocked
+		into the high half.
+		
+		In total the configuration bitstream is 256 bytes (256 bits per column).
+		
+		LUTs are loaded MSB first.
+	 */
+	wire[63:0] trigger_raw;
+	wire[7:0] trigger_out_stage0;
+	wire[7:0] trigger_out_stage1;
+	wire[7:0] trigger_out_stage2;
+	wire[7:0] trigger_out_stage3;
+	wire[7:0] trigger_out_stage4;
+	wire[7:0] trigger_out_stage5;
+	wire[7:0] trigger_out_stage6;
+	genvar ncol;
+	generate
+		for(ncol=0; ncol<8; ncol = ncol + 1) begin: triggerblock
+		
+			//channels [0,1]... [14,15]
+			SRLC32E #(.INIT(32'h0)) trigger_0 (
+				.Q(trigger_raw[ncol*8 + 0]),
+				.Q31(trigger_out_stage0[ncol]),
+				.A({1'b0, din_buf2[ncol*2 + 1], din_buf[ncol*2 + 1], din_buf2[ncol*2 + 0], din_buf[ncol*2 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(reconfig_din[ncol])
+				);
+				
+			//channels [16,17]...[30,31]
+			SRLC32E #(.INIT(32'h0)) trigger_1 (
+				.Q(trigger_raw[ncol*8 + 1]),
+				.Q31(trigger_out_stage1[ncol]),
+				.A({1'b0, din_buf2[ncol*4 + 1], din_buf[ncol*4 + 1], din_buf2[ncol*4 + 0], din_buf[ncol*4 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(trigger_out_stage0[ncol])
+				);
+				
+			SRLC32E #(.INIT(32'h0)) trigger_2 (
+				.Q(trigger_raw[ncol*8 + 2]),
+				.Q31(trigger_out_stage2[ncol]),
+				.A({1'b0, din_buf2[ncol*6 + 1], din_buf[ncol*6 + 1], din_buf2[ncol*6 + 0], din_buf[ncol*6 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(trigger_out_stage1[ncol])
+				);	
 	
-	//Mask against the trigger.
-	wire[DATA_WIDTH-1:0] data_high_masked;
-	wire[DATA_WIDTH-1:0] data_low_masked;
-	wire[DATA_WIDTH-1:0] data_rising_masked;
-	wire[DATA_WIDTH-1:0] data_falling_masked;
-	wire[DATA_WIDTH-1:0] data_changing_masked;
-	assign data_high_masked = data_high & trigger_high;
-	assign data_low_masked = data_low & trigger_low;
-	assign data_rising_masked = data_rising & trigger_rising;
-	assign data_falling_masked = data_falling & trigger_falling;
-	assign data_changing_masked = data_changing & trigger_changing;
+			SRLC32E #(.INIT(32'h0)) trigger_3 (
+				.Q(trigger_raw[ncol*8 + 3]),
+				.Q31(trigger_out_stage3[ncol]),
+				.A({1'b0, din_buf2[ncol*8 + 1], din_buf[ncol*8 + 1], din_buf2[ncol*8 + 0], din_buf[ncol*8 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(trigger_out_stage2[ncol])
+				);	
+
+			SRLC32E #(.INIT(32'h0)) trigger_4 (
+				.Q(trigger_raw[ncol*8 + 4]),
+				.Q31(trigger_out_stage4[ncol]),
+				.A({1'b0, din_buf2[ncol*10 + 1], din_buf[ncol*10 + 1], din_buf2[ncol*10 + 0], din_buf[ncol*10 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(trigger_out_stage3[ncol])
+				);	
+				
+			SRLC32E #(.INIT(32'h0)) trigger_5 (
+				.Q(trigger_raw[ncol*8 + 5]),
+				.Q31(trigger_out_stage5[ncol]),
+				.A({1'b0, din_buf2[ncol*12 + 1], din_buf[ncol*12 + 1], din_buf2[ncol*12 + 0], din_buf[ncol*12 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(trigger_out_stage4[ncol])
+				);	
+
+			SRLC32E #(.INIT(32'h0)) trigger_6 (
+				.Q(trigger_raw[ncol*8 + 6]),
+				.Q31(trigger_out_stage6[ncol]),
+				.A({1'b0, din_buf2[ncol*14 + 1], din_buf[ncol*14 + 1], din_buf2[ncol*14 + 0], din_buf[ncol*14 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(trigger_out_stage5[ncol])
+				);	
+				
+			SRLC32E #(.INIT(32'h0)) trigger_7 (
+				.Q(trigger_raw[ncol*8 + 7]),
+				//.Q31(trigger_out_stage7[ncol]),		//not used, end of the shift register
+				.A({1'b0, din_buf2[ncol*16 + 1], din_buf[ncol*16 + 1], din_buf2[ncol*16 + 0], din_buf[ncol*16 + 0]}),
+				.CE(reconfig_ce),
+				.CLK(clk),
+				.D(trigger_out_stage6[ncol])
+				);
+		end
+	endgenerate
 	
-	//We trigger if the masked values equal the mask (all masked conditions hold)
-	//or the external trigger is asserted.
-	assign trigger =	(
-							(data_high_masked == trigger_high) &&
-							(data_low_masked == trigger_low) &&
-							(data_rising_masked == trigger_rising) &&
-							(data_falling_masked == trigger_falling) &&
-							(data_changing_masked == trigger_changing)
-							) || ext_trigger;
+	//Keep track of position in the configuration bitstream and only enable the trigger
+	//once configuration has completed
+	reg config_done = 0;
+	reg[7:0] config_count = 0;
+	always @(posedge clk) begin
+		if(reset) begin
+			config_count <= 0;
+			config_done <= 0;
+		end
+		
+		else if(reconfig_ce) begin
+			config_count <= config_count + 8'd1;
+			if(config_count == 8'hFF)
+				config_done <= 1;
+		end
+		
+	end
+	
+	//Trigger if all channels' conditions were met and we're fully configured
+	assign trigger = (trigger_raw == 64'h0) && config_done;
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Capture logic
