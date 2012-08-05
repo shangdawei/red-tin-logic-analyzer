@@ -45,7 +45,9 @@ module RedTinLogicAnalyzer(
 	reconfig_din, reconfig_ce,
 	
 	done, reset,
-	read_addr, read_data
+	read_addr, read_data,
+	
+	leds
     );
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,6 +72,8 @@ module RedTinLogicAnalyzer(
 
 	input wire reset;
 	output wire done;
+	
+	output reg[7:0] leds = 0;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger logic
@@ -120,21 +124,21 @@ module RedTinLogicAnalyzer(
 				.CLK(clk),
 				.D(reconfig_din[ncol])
 				);
-				
+						
 			//channels [16,17]...[30,31]
 			SRLC32E #(.INIT(32'h0)) trigger_1 (
 				.Q(trigger_raw[ncol*8 + 1]),
 				.Q31(trigger_out_stage1[ncol]),
-				.A({1'b0, din_buf2[ncol*4 + 1], din_buf[ncol*4 + 1], din_buf2[ncol*4 + 0], din_buf[ncol*4 + 0]}),
+				.A({1'b0, din_buf2[ncol*2 + 17], din_buf[ncol*2 + 17], din_buf2[ncol*2 + 16], din_buf[ncol*2 + 16]}),
 				.CE(reconfig_ce),
 				.CLK(clk),
 				.D(trigger_out_stage0[ncol])
 				);
-				
+
 			SRLC32E #(.INIT(32'h0)) trigger_2 (
 				.Q(trigger_raw[ncol*8 + 2]),
 				.Q31(trigger_out_stage2[ncol]),
-				.A({1'b0, din_buf2[ncol*6 + 1], din_buf[ncol*6 + 1], din_buf2[ncol*6 + 0], din_buf[ncol*6 + 0]}),
+				.A({1'b0, din_buf2[ncol*2 + 33], din_buf[ncol*2 + 33], din_buf2[ncol*2 + 32], din_buf[ncol*2 + 32]}),
 				.CE(reconfig_ce),
 				.CLK(clk),
 				.D(trigger_out_stage1[ncol])
@@ -143,7 +147,7 @@ module RedTinLogicAnalyzer(
 			SRLC32E #(.INIT(32'h0)) trigger_3 (
 				.Q(trigger_raw[ncol*8 + 3]),
 				.Q31(trigger_out_stage3[ncol]),
-				.A({1'b0, din_buf2[ncol*8 + 1], din_buf[ncol*8 + 1], din_buf2[ncol*8 + 0], din_buf[ncol*8 + 0]}),
+				.A({1'b0, din_buf2[ncol*2 + 49], din_buf[ncol*2 + 49], din_buf2[ncol*2 + 48], din_buf[ncol*2 + 48]}),
 				.CE(reconfig_ce),
 				.CLK(clk),
 				.D(trigger_out_stage2[ncol])
@@ -152,7 +156,7 @@ module RedTinLogicAnalyzer(
 			SRLC32E #(.INIT(32'h0)) trigger_4 (
 				.Q(trigger_raw[ncol*8 + 4]),
 				.Q31(trigger_out_stage4[ncol]),
-				.A({1'b0, din_buf2[ncol*10 + 1], din_buf[ncol*10 + 1], din_buf2[ncol*10 + 0], din_buf[ncol*10 + 0]}),
+				.A({1'b0, din_buf2[ncol*2 + 65], din_buf[ncol*2 + 65], din_buf2[ncol*2 + 64], din_buf[ncol*2 + 64]}),
 				.CE(reconfig_ce),
 				.CLK(clk),
 				.D(trigger_out_stage3[ncol])
@@ -161,7 +165,7 @@ module RedTinLogicAnalyzer(
 			SRLC32E #(.INIT(32'h0)) trigger_5 (
 				.Q(trigger_raw[ncol*8 + 5]),
 				.Q31(trigger_out_stage5[ncol]),
-				.A({1'b0, din_buf2[ncol*12 + 1], din_buf[ncol*12 + 1], din_buf2[ncol*12 + 0], din_buf[ncol*12 + 0]}),
+				.A({1'b0, din_buf2[ncol*2 + 81], din_buf[ncol*2 + 81], din_buf2[ncol*2 + 80], din_buf[ncol*2 + 80]}),
 				.CE(reconfig_ce),
 				.CLK(clk),
 				.D(trigger_out_stage4[ncol])
@@ -170,7 +174,7 @@ module RedTinLogicAnalyzer(
 			SRLC32E #(.INIT(32'h0)) trigger_6 (
 				.Q(trigger_raw[ncol*8 + 6]),
 				.Q31(trigger_out_stage6[ncol]),
-				.A({1'b0, din_buf2[ncol*14 + 1], din_buf[ncol*14 + 1], din_buf2[ncol*14 + 0], din_buf[ncol*14 + 0]}),
+				.A({1'b0, din_buf2[ncol*2 + 97], din_buf[ncol*2 + 97], din_buf2[ncol*2 + 96], din_buf[ncol*2 + 96]}),
 				.CE(reconfig_ce),
 				.CLK(clk),
 				.D(trigger_out_stage5[ncol])
@@ -179,7 +183,7 @@ module RedTinLogicAnalyzer(
 			SRLC32E #(.INIT(32'h0)) trigger_7 (
 				.Q(trigger_raw[ncol*8 + 7]),
 				//.Q31(trigger_out_stage7[ncol]),		//not used, end of the shift register
-				.A({1'b0, din_buf2[ncol*16 + 1], din_buf[ncol*16 + 1], din_buf2[ncol*16 + 0], din_buf[ncol*16 + 0]}),
+				.A({1'b0, din_buf2[ncol*2 + 113], din_buf[ncol*2 + 113], din_buf2[ncol*2 + 112], din_buf[ncol*2 + 112]}),
 				.CE(reconfig_ce),
 				.CLK(clk),
 				.D(trigger_out_stage6[ncol])
@@ -206,7 +210,21 @@ module RedTinLogicAnalyzer(
 	end
 	
 	//Trigger if all channels' conditions were met and we're fully configured
-	assign trigger = (trigger_raw == 64'h0) && config_done;
+	assign trigger = (trigger_raw == 64'hFFFFFFFFFFFFFFFF) && config_done;
+	
+	always @(posedge clk) begin
+		leds[7] <= 1;
+		if(reset)
+			leds[6] <= 1;
+		if(reconfig_ce)
+			leds[5] <= 1;
+		if(config_done)
+			leds[4] <= 1;
+		if(trigger)
+			leds[3] <= 1;
+		if(done)
+			leds[2] <= 1;
+	end
 
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Capture logic

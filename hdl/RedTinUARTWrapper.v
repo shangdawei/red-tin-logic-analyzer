@@ -66,7 +66,8 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 		.done(capture_done), 
 		.reset(la_reset), 
 		.read_addr(read_addr), 
-		.read_data(read_data)
+		.read_data(read_data)//,
+		//.leds(leds)
 		);
 	
 	////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,7 +117,7 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 		reconfig_din <= 0;
 	
 		if(uart_rxrdy) begin
-			
+					
 			//Actual loading of data
 			if(loading) begin
 				reconfig_ce <= 1;
@@ -145,7 +146,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 				end
 				
 			end
-			
 		end
 	end
 
@@ -232,7 +232,6 @@ module RedTinUARTWrapper(clk, din, uart_tx, uart_rx);
 			end
 			
 		end
-		
 	end
 
 endmodule
