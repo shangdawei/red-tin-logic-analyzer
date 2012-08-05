@@ -364,6 +364,16 @@ void MainWindow::OnCapture()
 	for(int i=0; i<64; i++)
 		truth_tables[i] = MakeTruthTable(state_vector[2*i], state_vector[2*i + 1]);
 	
+	/*	
+	printf("Bitmask: \n");
+	for(int i=0; i<64; i++)
+	{
+		printf("%08x ", truth_tables[i]);
+		if( (i & 0x7) == 0x7)
+			printf("\n");
+	}
+	*/
+	
 	/*
 		128 channels packed into 64 LUTs (two bits for each).
 		Configuration is done in eight columns of 8 LUTs (16 channels) each.
@@ -399,6 +409,7 @@ void MainWindow::OnCapture()
 		bitstream[i] = cword;
 	}
 	
+	/*
 	printf("Bitstream: \n");
 	for(int i=0; i<256; i++)
 	{
@@ -406,6 +417,7 @@ void MainWindow::OnCapture()
 		if( (i & 0xF) == 0xF)
 			printf("\n");
 	}
+	*/
 	
 	//Connect to the UART
 	int hfile = open("/dev/ttyUSB0", O_RDWR);
@@ -433,9 +445,9 @@ void MainWindow::OnCapture()
 		return;
 	}
 	
-	//Send trigger config data to the board
-	unsigned int header = 0xFEEDFACE;
-	if(4 != write_looped(hfile, (unsigned char*)&header, 4))
+	//Send trigger header to the board
+	unsigned char header[5] = {0xfe, 0xed, 0xfa, 0xce, 0x00};
+	if(5 != write_looped(hfile, header, 5))
 	{
 		perror("couldn't send header");
 		return;
