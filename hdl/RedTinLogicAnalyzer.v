@@ -45,9 +45,7 @@ module RedTinLogicAnalyzer(
 	reconfig_din, reconfig_ce,
 	
 	done, reset,
-	read_addr, read_data,
-	
-	leds
+	read_addr, read_data
     );
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,8 +70,6 @@ module RedTinLogicAnalyzer(
 
 	input wire reset;
 	output wire done;
-	
-	output reg[7:0] leds = 0;
 	
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Trigger logic
@@ -212,20 +208,6 @@ module RedTinLogicAnalyzer(
 	//Trigger if all channels' conditions were met and we're fully configured
 	assign trigger = (trigger_raw == 64'hFFFFFFFFFFFFFFFF) && config_done;
 	
-	always @(posedge clk) begin
-		leds[7] <= 1;
-		if(reset)
-			leds[6] <= 1;
-		if(reconfig_ce)
-			leds[5] <= 1;
-		if(config_done)
-			leds[4] <= 1;
-		if(trigger)
-			leds[3] <= 1;
-		if(done)
-			leds[2] <= 1;
-	end
-
 	///////////////////////////////////////////////////////////////////////////////////////////////
 	// Capture logic
 	
