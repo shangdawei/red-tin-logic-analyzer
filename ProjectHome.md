@@ -1,0 +1,1 @@
+On-chip logic analyzer for FPGAs intended as a replacement for proprietary tools from vendors.
